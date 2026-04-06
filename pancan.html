@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Short a Flashcards</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 24px;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #89f7fe, #66a6ff);
+  }
+
+  .title {
+    text-align: center;
+    color: white;
+    font-size: 2.2rem;
+    font-weight: 900;
+    margin-bottom: 24px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .card {
+    perspective: 1200px;
+    height: 240px;
+    cursor: pointer;
+  }
+
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s ease;
+    transform-style: preserve-3d;
+  }
+
+  .card.flipped .card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .card-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.16);
+    padding: 16px;
+  }
+
+  .front {
+    color: white;
+    font-size: 2.6rem;
+    font-weight: 900;
+  }
+
+  .back {
+    background: #102a63;
+    color: white;
+    transform: rotateY(180deg);
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card:nth-child(odd) .front {
+    background: #2563eb;
+  }
+
+  .card:nth-child(even) .front {
+    background: #10b981;
+  }
+
+  .word {
+    font-size: 2.4rem;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+
+  .meaning {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .guide {
+    text-align: center;
+    margin-top: 20px;
+    color: white;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  @media (max-width: 768px) {
+    body {
+      padding: 16px;
+    }
+
+    .title {
+      font-size: 1.8rem;
+    }
+
+    .grid {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      height: 200px;
+    }
+
+    .front {
+      font-size: 2.1rem;
+    }
+
+    .word {
+      font-size: 2rem;
+    }
+
+    .meaning {
+      font-size: 1.15rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <div class="title">Short a Flashcards</div>
+  <div class="grid" id="cardGrid"></div>
+  <div class="guide">카드를 클릭하면 두 번 읽고 뒤집힙니다.</div>
+
+<script>
+  const cards = [
+    { word: "pan", meaning: "팬 / 냄비" },
+    { word: "can", meaning: "깡통 / 할 수 있다" },
+    { word: "fan", meaning: "선풍기 / 부채" },
+    { word: "man", meaning: "남자" },
+    { word: "cap", meaning: "모자" },
+    { word: "map", meaning: "지도" },
+    { word: "bag", meaning: "가방" },
+    { word: "tag", meaning: "꼬리표" },
+    { word: "jam", meaning: "잼" },
+    { word: "ham", meaning: "햄" },
+    { word: "bat", meaning: "방망이 / 박쥐" },
+    { word: "hat", meaning: "모자" },
+    { word: "cat", meaning: "고양이" },
+    { word: "rat", meaning: "쥐" },
+    { word: "sad", meaning: "슬픈" },
+    { word: "pad", meaning: "패드 / 받침" }
+  ];
+
+  const grid = document.getElementById("cardGrid");
+
+  function pickEnglishVoice() {
+    const voices = speechSynthesis.getVoices();
+    return (
+      voices.find(v => v.lang === "en-US" && /Google|Microsoft|Samantha|Jenny|Aria|Guy|Davis/i.test(v.name)) ||
+      voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en-us")) ||
+      voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en")) ||
+      null
+    );
+  }
+
+  function speakTwice(word) {
+    speechSynthesis.cancel();
+
+    const voice = pickEnglishVoice();
+
+    const u1 = new SpeechSynthesisUtterance("\u200B, " + word);
+    u1.lang = "en-US";
+    u1.rate = 0.9;
+    if (voice) u1.voice = voice;
+
+    const u2 = new SpeechSynthesisUtterance(word);
+    u2.lang = "en-US";
+    u2.rate = 0.9;
+    if (voice) u2.voice = voice;
+
+    speechSynthesis.speak(u1);
+    setTimeout(() => {
+      speechSynthesis.speak(u2);
+    }, 350);
+  }
+
+  function createCard(item) {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-face front">
+          <div class="word">${item.word}</div>
+        </div>
+        <div class="card-face back">
+          <div class="word">${item.word}</div>
+          <div class="meaning">${item.meaning}</div>
+        </div>
+      </div>
+    `;
+
+    card.addEventListener("click", () => {
+      speakTwice(item.word);
+      card.classList.toggle("flipped");
+    });
+
+    return card;
+  }
+
+  cards.forEach(item => {
+    grid.appendChild(createCard(item));
+  });
+
+  window.speechSynthesis.onvoiceschanged = () => {};
+</script>
+
+</body>
+</html>
