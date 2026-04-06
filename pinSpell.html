@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>단어완성 학습지</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #a7f3d0, #93c5fd);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 920px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.97);
+    border-radius: 28px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.15);
+    padding: 34px 28px;
+    text-align: center;
+  }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .count {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1e3a8a;
+  }
+
+  .progress-wrap {
+    width: 100%;
+    height: 16px;
+    background: #dbeafe;
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 10px 0 28px;
+  }
+
+  .progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #2563eb, #10b981);
+    transition: width 0.35s ease;
+  }
+
+  .title {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #0f172a;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 1.15rem;
+    color: #334155;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  .scramble-box {
+    width: min(420px, 95%);
+    margin: 0 auto 24px;
+    padding: 28px 20px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #eff6ff, #ecfeff);
+    border: 3px solid #93c5fd;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.7);
+  }
+
+  .scramble-label {
+    font-size: 1.05rem;
+    color: #475569;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+
+  .scramble-word {
+    font-size: 4rem;
+    font-weight: 900;
+    letter-spacing: 8px;
+    color: #0f172a;
+  }
+
+  .scramble-word .fixed {
+    color: #dc2626;
+  }
+
+  .input-box {
+    width: min(520px, 95%);
+    font-size: 2rem;
+    padding: 18px 20px;
+    border-radius: 18px;
+    border: 3px solid #93c5fd;
+    outline: none;
+    text-align: center;
+    font-weight: 800;
+    letter-spacing: 2px;
+  }
+
+  .input-box:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 6px rgba(37,99,235,0.12);
+  }
+
+  .btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+
+  button.action {
+    border: none;
+    border-radius: 16px;
+    padding: 14px 24px;
+    font-size: 1.08rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+  }
+
+  button.action:hover { transform: translateY(-1px); }
+
+  .check-btn {
+    background: #2563eb;
+    color: white;
+  }
+
+  .msg {
+    margin-top: 22px;
+    min-height: 2em;
+    font-size: 1.5rem;
+    font-weight: 900;
+  }
+
+  .correct { color: #15803d; }
+  .wrong { color: #dc2626; }
+
+  .answer {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    color: #334155;
+    min-height: 1.6em;
+    font-weight: 700;
+  }
+
+  .finish {
+    display: none;
+    text-align: center;
+    padding: 30px 10px 10px;
+  }
+
+  .finish h2 {
+    font-size: 2.4rem;
+    color: #0f172a;
+    margin: 0 0 12px;
+  }
+
+  .finish p {
+    font-size: 1.3rem;
+    color: #334155;
+    margin-bottom: 24px;
+  }
+
+  .restart-btn {
+    background: linear-gradient(135deg, #2563eb, #10b981);
+    color: white;
+    border: none;
+    border-radius: 18px;
+    padding: 16px 28px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    .card { padding: 26px 18px; }
+    .title { font-size: 1.8rem; }
+    .subtitle { font-size: 1.03rem; }
+    .scramble-word {
+      font-size: 3rem;
+      letter-spacing: 5px;
+    }
+    .input-box {
+      font-size: 1.6rem;
+      padding: 16px;
+    }
+    .msg { font-size: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="topbar">
+        <div class="count" id="countText">1 / 16</div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <div class="title">단어완성</div>
+      <div class="subtitle">
+        빨간 글자 <b>i</b>를 보고, 나머지 철자를 맞게 배열하여 단어를 완성하세요.
+      </div>
+
+      <div class="scramble-box" id="scrambleBox">
+        <div class="scramble-label">섞인 철자</div>
+        <div class="scramble-word" id="scrambleWord"></div>
+      </div>
+
+      <div>
+        <input
+          type="text"
+          id="answerInput"
+          class="input-box"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          placeholder="완성된 단어 입력"
+        />
+      </div>
+
+      <div class="btn-row">
+        <button class="action check-btn" id="checkBtn">정답 확인</button>
+      </div>
+
+      <div class="msg" id="message"></div>
+      <div class="answer" id="answerHint"></div>
+
+      <div class="finish" id="finishBox">
+        <h2>수고하셨습니다!</h2>
+        <p>모든 단어를 완성했어요.</p>
+        <button class="restart-btn" id="restartBtn">다시 시작</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const words = [
+    "pin", "fin", "bin", "win",
+    "lip", "dip", "zip", "hip",
+    "dig", "wig", "pig", "fig",
+    "hit", "six", "sit", "mix"
+  ];
+
+  let quizWords = [...words];
+  let currentIndex = 0;
+  let wrongCount = 0;
+  let locked = false;
+
+  const countText = document.getElementById('countText');
+  const progressBar = document.getElementById('progressBar');
+  const scrambleBox = document.getElementById('scrambleBox');
+  const scrambleWord = document.getElementById('scrambleWord');
+  const answerInput = document.getElementById('answerInput');
+  const checkBtn = document.getElementById('checkBtn');
+  const message = document.getElementById('message');
+  const answerHint = document.getElementById('answerHint');
+  const finishBox = document.getElementById('finishBox');
+  const restartBtn = document.getElementById('restartBtn');
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  function getCurrentWord() {
+    return quizWords[currentIndex];
+  }
+
+  function updateProgress() {
+    countText.textContent = `${currentIndex + 1} / ${quizWords.length}`;
+    progressBar.style.width = `${(currentIndex / quizWords.length) * 100}%`;
+  }
+
+  function makeScramble(word) {
+    // 모든 단어는 3글자, 가운데가 i라고 가정
+    const first = word[0];
+    const third = word[2];
+
+    // i를 앞에 고정하고 나머지 두 글자를 랜덤 순서로 붙임
+    if (Math.random() < 0.5) {
+      return 'i' + first + third;   // ex) six -> isx
+    } else {
+      return 'i' + third + first;   // ex) six -> ixs
+    }
+  }
+
+  function renderScramble(scrambled) {
+    scrambleWord.innerHTML = `<span class="fixed">${scrambled[0]}</span>${scrambled.slice(1)}`;
+  }
+
+  function clearFeedback() {
+    message.textContent = "";
+    message.className = "msg";
+    answerHint.textContent = "";
+  }
+
+  function loadQuestion() {
+    if (currentIndex >= quizWords.length) {
+      finishQuiz();
+      return;
+    }
+
+    wrongCount = 0;
+    locked = false;
+    answerInput.value = "";
+    answerInput.disabled = false;
+    clearFeedback();
+
+    updateProgress();
+    renderScramble(makeScramble(getCurrentWord()));
+
+    setTimeout(() => {
+      answerInput.focus();
+    }, 50);
+  }
+
+  function checkAnswer() {
+    if (locked) return;
+
+    const user = answerInput.value.trim().toLowerCase();
+    const correct = getCurrentWord().toLowerCase();
+
+    if (!user) {
+      message.textContent = "단어를 입력하세요.";
+      message.className = "msg wrong";
+      return;
+    }
+
+    if (user === correct) {
+      locked = true;
+      answerInput.disabled = true;
+      message.textContent = "정답입니다!";
+      message.className = "msg correct";
+      answerHint.textContent = "";
+
+      progressBar.style.width = `${((currentIndex + 1) / quizWords.length) * 100}%`;
+
+      setTimeout(() => {
+        currentIndex++;
+        loadQuestion();
+      }, 750);
+    } else {
+      wrongCount++;
+      message.textContent = "다시 생각해 보세요.";
+      message.className = "msg wrong";
+
+      if (wrongCount >= 3) {
+        answerHint.textContent = `정답: ${correct}`;
+      } else {
+        answerHint.textContent = "";
+      }
+
+      answerInput.focus();
+      answerInput.select();
+    }
+  }
+
+  function finishQuiz() {
+    countText.textContent = `${quizWords.length} / ${quizWords.length}`;
+    progressBar.style.width = "100%";
+    scrambleBox.style.display = "none";
+    answerInput.style.display = "none";
+    checkBtn.style.display = "none";
+    message.style.display = "none";
+    answerHint.style.display = "none";
+    finishBox.style.display = "block";
+  }
+
+  function restartQuiz() {
+    quizWords = [...words];
+    shuffle(quizWords);
+    currentIndex = 0;
+
+    scrambleBox.style.display = "block";
+    answerInput.style.display = "inline-block";
+    checkBtn.style.display = "inline-block";
+    message.style.display = "block";
+    answerHint.style.display = "block";
+    finishBox.style.display = "none";
+
+    loadQuestion();
+  }
+
+  checkBtn.addEventListener('click', checkAnswer);
+
+  answerInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      checkAnswer();
+    }
+  });
+
+  answerInput.addEventListener('paste', (e) => e.preventDefault());
+  answerInput.addEventListener('copy', (e) => e.preventDefault());
+  answerInput.addEventListener('cut', (e) => e.preventDefault());
+
+  restartBtn.addEventListener('click', restartQuiz);
+
+  shuffle(quizWords);
+  loadQuestion();
+</script>
+</body>
+</html>
