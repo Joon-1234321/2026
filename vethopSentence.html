@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Short e & o 문장 읽기</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #89f7fe, #66a6ff);
+  padding: 24px;
+}
+
+.wrap {
+  max-width: 1100px;
+  margin: auto;
+}
+
+.header {
+  background: white;
+  padding: 25px;
+  border-radius: 25px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 2.2rem;
+  font-weight: bold;
+}
+
+.controls {
+  margin-top: 15px;
+}
+
+button {
+  padding: 10px 18px;
+  margin: 5px;
+  border-radius: 12px;
+  border: none;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.stop { background: #2563eb; }
+.all { background: #10b981; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px,1fr));
+  gap: 15px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 18px;
+  cursor: pointer;
+}
+
+.num {
+  color: #2563eb;
+  font-weight: bold;
+}
+
+.text {
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+.hint {
+  font-size: 0.9rem;
+  color: #666;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="header">
+<div class="title">Short e & o 문장 읽기</div>
+<div class="controls">
+<button class="stop" onclick="stop()">멈추기</button>
+<button class="all" onclick="readAll()">전체 읽기</button>
+</div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+</div>
+
+<script>
+
+const sentences = [
+
+/* 리듬 */
+"A vet, a net, a jet.",
+"A pen, a hen, a bed.",
+"A hop, a mop, a pot.",
+"A box, a fox, a hot box.",
+"A dog on a log. A dog on a log.",
+
+/* 쉬운 문장 */
+"A vet has a pet.",
+"A pen is on the bed.",
+"A hen is in a net.",
+"A dog is on a log.",
+"A fox is in a box.",
+
+/* 대비 */
+"A bed is not bad.",
+"A pen is not pan.",
+"A fox is not box.",
+"A dog is not dig.",
+"A hop is not hip.",
+
+/* 연결 */
+"A vet has a pen on the bed.",
+"A hen and a dog sit on a log.",
+"A fox jumps on a hot box.",
+"A pen is in a box on the bed.",
+
+/* 스토리 */
+"A dog and a fox on a log.",
+"A vet with a pet on a bed.",
+"A fox in a box on a log."
+
+];
+
+let voice;
+
+function loadVoices(){
+  const v = speechSynthesis.getVoices();
+  voice = v.find(x=>x.lang==="en-US") || v[0];
+}
+
+function speak(t){
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance("\u200B, "+t);
+  u.lang="en-US";
+  u.rate=0.88;
+  if(voice) u.voice=voice;
+  speechSynthesis.speak(u);
+}
+
+function build(){
+  const grid=document.getElementById("grid");
+
+  sentences.forEach((s,i)=>{
+    const card=document.createElement("div");
+    card.className="card";
+
+    card.innerHTML = `
+      <div class="num">${i+1}.</div>
+      <div class="text">${s}</div>
+      <div class="hint">클릭해서 듣기</div>
+    `;
+
+    card.onclick=()=>speak(s);
+
+    grid.appendChild(card);
+  });
+}
+
+function stop(){
+  speechSynthesis.cancel();
+}
+
+function readAll(){
+  let i=0;
+  function next(){
+    if(i>=sentences.length) return;
+    const u=new SpeechSynthesisUtterance("\u200B, "+sentences[i]);
+    u.lang="en-US";
+    u.rate=0.88;
+    if(voice) u.voice=voice;
+    u.onend=()=>{i++; setTimeout(next,400);}
+    speechSynthesis.speak(u);
+  }
+  speechSynthesis.cancel();
+  next();
+}
+
+window.speechSynthesis.onvoiceschanged=loadVoices;
+loadVoices();
+build();
+
+</script>
+
+</body>
+</html>

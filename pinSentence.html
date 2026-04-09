@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Short i 문장 읽기 연습</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #89f7fe, #66a6ff);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .header-card {
+      background: rgba(255,255,255,0.96);
+      border-radius: 28px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+      padding: 28px 24px;
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .title {
+      font-size: 2.3rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #334155;
+      line-height: 1.6;
+    }
+
+    .controls {
+      margin-top: 22px;
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    button.control-btn {
+      border: none;
+      border-radius: 16px;
+      padding: 14px 22px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      cursor: pointer;
+      color: white;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+
+    button.control-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .stop-btn {
+      background: #2563eb;
+    }
+
+    .all-btn {
+      background: #10b981;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 18px;
+    }
+
+    .sentence-card {
+      background: rgba(255,255,255,0.96);
+      border-radius: 24px;
+      box-shadow: 0 14px 32px rgba(0,0,0,0.14);
+      padding: 24px 22px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border 0.15s ease;
+      border: 3px solid transparent;
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .sentence-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 36px rgba(0,0,0,0.18);
+      border-color: #93c5fd;
+    }
+
+    .sentence-card.active {
+      border-color: #10b981;
+      box-shadow: 0 18px 36px rgba(16,185,129,0.22);
+    }
+
+    .number {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #2563eb;
+      margin-bottom: 12px;
+    }
+
+    .sentence {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.5;
+      word-break: keep-all;
+    }
+
+    .hint {
+      margin-top: 12px;
+      font-size: 1rem;
+      color: #475569;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 16px; }
+
+      .title {
+        font-size: 1.9rem;
+      }
+
+      .subtitle {
+        font-size: 1.05rem;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sentence {
+        font-size: 1.45rem;
+      }
+
+      .sentence-card {
+        min-height: 130px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header-card">
+      <div class="title">Short i 문장 읽기 연습</div>
+      <div class="subtitle">
+        문장을 클릭하면 영어로 읽어줍니다.<br>
+        먼저 리듬 문장으로 소리를 익히고, 그다음 쉬운 문장을 읽어 보세요.
+      </div>
+
+      <div class="controls">
+        <button class="control-btn stop-btn" id="stopBtn">멈추기</button>
+        <button class="control-btn all-btn" id="readAllBtn">순서대로 읽기</button>
+      </div>
+    </div>
+
+    <div class="grid" id="sentenceGrid"></div>
+  </div>
+
+  <script>
+    const sentences = [
+      // 1단계: 리듬 반복
+      "A pin, a fin, a bin.",
+      "A pig, a wig, a fig.",
+      "A lip, a hip, a dip.",
+      "Sit, hit, sit, hit.",
+      "Mix six. Mix six.",
+
+      // 2단계: 쉬운 문장
+      "A pig is big.",
+      "A pin is in a bin.",
+      "A dog can dig.",
+      "A cat can sit.",
+      "A man can hit.",
+
+      // 3단계: 발음 대비
+      "A pig is not a peg.",
+      "A bin is not a ban.",
+      "A sit is not a set.",
+      "A hit is not a hat.",
+      "A dip is not deep.",
+
+      // 4단계: 연결 문장
+      "A pig is in a big bin.",
+      "A man can dig and sit.",
+      "A kid can hit and win.",
+      "A wig is in a big box.",
+
+      // 5단계: 리듬과 스토리
+      "A pig in a wig in a big bin.",
+      "A kid can hit and win.",
+      "Mix six figs in a big dish."
+    ];
+
+    const grid = document.getElementById("sentenceGrid");
+    const stopBtn = document.getElementById("stopBtn");
+    const readAllBtn = document.getElementById("readAllBtn");
+
+    let selectedVoice = null;
+    let readAllMode = false;
+
+    function loadVoices() {
+      const voices = speechSynthesis.getVoices();
+      selectedVoice =
+        voices.find(v => v.lang === "en-US" && /Google|Microsoft|Samantha|Jenny|Aria|Guy|David/i.test(v.name)) ||
+        voices.find(v => v.lang && v.lang.toLowerCase() === "en-us") ||
+        voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en")) ||
+        null;
+    }
+
+    function clearActive() {
+      document.querySelectorAll(".sentence-card").forEach(card => {
+        card.classList.remove("active");
+      });
+    }
+
+    function makeUtterance(text, onEndCallback = null) {
+      const utter = new SpeechSynthesisUtterance("\u200B, " + text);
+      utter.lang = "en-US";
+      utter.rate = 0.88;
+      if (selectedVoice) utter.voice = selectedVoice;
+      if (onEndCallback) utter.onend = onEndCallback;
+      return utter;
+    }
+
+    function speakSentence(text, card = null) {
+      speechSynthesis.cancel();
+      readAllMode = false;
+      clearActive();
+
+      if (card) card.classList.add("active");
+
+      const utter = makeUtterance(text, () => {
+        if (card) card.classList.remove("active");
+      });
+
+      speechSynthesis.speak(utter);
+    }
+
+    function createCards() {
+      sentences.forEach((sentence, index) => {
+        const card = document.createElement("div");
+        card.className = "sentence-card";
+
+        const number = document.createElement("div");
+        number.className = "number";
+        number.textContent = `${index + 1}`;
+
+        const text = document.createElement("div");
+        text.className = "sentence";
+        text.textContent = sentence;
+
+        const hint = document.createElement("div");
+        hint.className = "hint";
+        hint.textContent = "클릭해서 듣기";
+
+        card.appendChild(number);
+        card.appendChild(text);
+        card.appendChild(hint);
+
+        card.addEventListener("click", () => {
+          speakSentence(sentence, card);
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
+    function readAll(index = 0) {
+      if (!readAllMode) return;
+
+      const cards = document.querySelectorAll(".sentence-card");
+      if (index >= sentences.length) {
+        clearActive();
+        readAllMode = false;
+        return;
+      }
+
+      clearActive();
+      const card = cards[index];
+      card.classList.add("active");
+
+      speechSynthesis.cancel();
+      const utter = makeUtterance(sentences[index], () => {
+        card.classList.remove("active");
+        if (!readAllMode) return;
+        setTimeout(() => readAll(index + 1), 450);
+      });
+
+      speechSynthesis.speak(utter);
+    }
+
+    stopBtn.addEventListener("click", () => {
+      readAllMode = false;
+      speechSynthesis.cancel();
+      clearActive();
+    });
+
+    readAllBtn.addEventListener("click", () => {
+      readAllMode = true;
+      readAll(0);
+    });
+
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+    loadVoices();
+    createCards();
+  </script>
+</body>
+</html>

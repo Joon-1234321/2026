@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Short a 문장 읽기 연습</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #89f7fe, #66a6ff);
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.header-card {
+  background: rgba(255,255,255,0.96);
+  border-radius: 28px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+  padding: 28px 24px;
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.title {
+  font-size: 2.3rem;
+  font-weight: 800;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #334155;
+}
+
+.controls {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+button {
+  border: none;
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+}
+
+.stop-btn { background:#2563eb; }
+.all-btn { background:#10b981; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px,1fr));
+  gap: 16px;
+}
+
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 22px;
+  cursor: pointer;
+  border: 3px solid transparent;
+}
+
+.card.active {
+  border-color:#10b981;
+}
+
+.number {
+  font-size: 1rem;
+  font-weight: bold;
+  color:#2563eb;
+  margin-bottom:8px;
+}
+
+.sentence {
+  font-size: 1.7rem;
+  font-weight: bold;
+}
+
+.hint {
+  margin-top:8px;
+  font-size:0.9rem;
+  color:#666;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+  <div class="header-card">
+    <div class="title">Short a 문장 읽기 연습</div>
+    <div class="subtitle">문장을 클릭하면 영어로 읽어줍니다.</div>
+
+    <div class="controls">
+      <button class="stop-btn" onclick="stop()">멈추기</button>
+      <button class="all-btn" onclick="readAll()">전체 읽기</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const sentences = [
+"A pan, a can, a man.",
+"A cat, a cap, a can.",
+"A fan, a man, a pan.",
+"A bag, a bat, a cap.",
+"A cat on a mat. A cat on a mat.",
+"A man has a pan.",
+"A man has a can.",
+"A cat is on a mat.",
+"A fan is in a bag.",
+"A bat is on a cap.",
+"A pan is not a pen.",
+"A cap is not a cup.",
+"A bag is not a bug.",
+"A cat is not a cut.",
+"A man is not men.",
+"A man has a pan and a can.",
+"A cat is on a mat with a cap.",
+"A fan is in a bag on a mat.",
+"A bat and a cat are on a mat.",
+"A man with a pan and a can.",
+"A cat and a bat on a mat.",
+"A fan in a bag on a mat."
+];
+
+let voice;
+
+function loadVoices(){
+  const v = speechSynthesis.getVoices();
+  voice = v.find(x=>x.lang==="en-US") || v[0];
+}
+
+function speak(text){
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance("\u200B, "+text);
+  u.lang="en-US";
+  u.rate=0.88;
+  if(voice) u.voice=voice;
+  speechSynthesis.speak(u);
+}
+
+function build(){
+  const grid=document.getElementById("grid");
+
+  sentences.forEach((s,i)=>{
+    const card=document.createElement("div");
+    card.className="card";
+
+    const num=document.createElement("div");
+    num.className="number";
+    num.textContent = (i+1) + ".";
+
+    const text=document.createElement("div");
+    text.className="sentence";
+    text.textContent=s;
+
+    const hint=document.createElement("div");
+    hint.className="hint";
+    hint.textContent="클릭해서 듣기";
+
+    card.appendChild(num);
+    card.appendChild(text);
+    card.appendChild(hint);
+
+    card.onclick=()=>speak(s);
+
+    grid.appendChild(card);
+  });
+}
+
+function stop(){
+  speechSynthesis.cancel();
+}
+
+function readAll(){
+  let i=0;
+  function next(){
+    if(i>=sentences.length) return;
+    const u=new SpeechSynthesisUtterance("\u200B, "+sentences[i]);
+    u.lang="en-US";
+    u.rate=0.88;
+    if(voice) u.voice=voice;
+    u.onend=()=>{i++; setTimeout(next,400);}
+    speechSynthesis.speak(u);
+  }
+  speechSynthesis.cancel();
+  next();
+}
+
+window.speechSynthesis.onvoiceschanged=loadVoices;
+loadVoices();
+build();
+</script>
+
+</body>
+</html>
