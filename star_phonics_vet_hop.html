@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Phonics Star Game - vet & hop 16</title>
+<style>
+  :root{
+    --bg1:#7dd3fc; --bg2:#c4b5fd; --bg3:#fde68a; --card:#ffffffee; --ink:#123;
+    --accent:#2563eb; --accent2:#16a34a; --danger:#dc2626;
+    --shadow:0 14px 30px rgba(0,0,0,.14); --radius:24px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:"Pretendard","Noto Sans KR",Arial,sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));color:var(--ink);min-height:100%}
+  body{padding:18px}
+  .wrap{max-width:1180px;margin:0 auto}
+  .panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;backdrop-filter: blur(8px);}
+  .hero{display:grid;grid-template-columns:1.2fr .9fr;gap:20px;align-items:stretch;}
+  .title{font-size:clamp(2rem,3.5vw,3.3rem);font-weight:900;letter-spacing:-.02em;margin:0 0 8px;}
+  .subtitle{font-size:clamp(1rem,1.7vw,1.25rem);line-height:1.6;margin:0 0 14px;}
+  .bubbleRow{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px}
+  .bubble{padding:12px 18px;background:#fff;border-radius:999px;font-weight:800;box-shadow:0 8px 18px rgba(0,0,0,.08);font-size:1.05rem;}
+  .rightBox{display:grid;gap:14px;align-content:center;}
+  .menuCard{background:#fff;border-radius:22px;padding:16px;border:3px solid rgba(37,99,235,.16);}
+  .menuTitle{margin:0 0 8px;font-size:1.25rem;font-weight:900;}
+  .setButtons,.actionRow,.choiceGrid,.letterBank,.answerSlots,.modeGrid{display:flex;flex-wrap:wrap;gap:12px;}
+  button{border:none;border-radius:18px;background:#fff;color:var(--ink);padding:14px 20px;font-size:1.1rem;font-weight:900;cursor:pointer;box-shadow:0 8px 18px rgba(0,0,0,.08);transition:transform .12s ease, box-shadow .12s ease, background .12s ease;}
+  button:hover{transform:translateY(-2px)} button:active{transform:translateY(0)}
+  .primary{background:linear-gradient(135deg,#2563eb,#38bdf8);color:#fff}
+  .green{background:linear-gradient(135deg,#16a34a,#4ade80);color:#fff}
+  .orange{background:linear-gradient(135deg,#f97316,#facc15);color:#fff}
+  .pink{background:linear-gradient(135deg,#ec4899,#f9a8d4);color:#fff}
+  .ghost{background:#fff} .tiny{font-size:.95rem;padding:10px 14px;border-radius:14px}
+  .screen{display:none} .screen.active{display:block}
+  .topBar{display:grid;grid-template-columns:1.2fr .7fr .7fr .9fr;gap:12px;margin-bottom:18px;}
+  .stat{background:#fff;border-radius:18px;padding:14px 16px;font-weight:900;box-shadow:0 8px 18px rgba(0,0,0,.08);text-align:center;min-height:78px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;}
+  .progressWrap{background:#fff;border-radius:999px;overflow:hidden;height:24px;box-shadow: inset 0 0 0 2px rgba(37,99,235,.08);}
+  .progressBar{width:0%;height:100%;background:linear-gradient(90deg,#22c55e,#38bdf8,#8b5cf6);transition:width .25s ease;}
+  .gameCard{background:#ffffffdd;border-radius:28px;padding:24px;box-shadow:var(--shadow);min-height:470px;}
+  .gameTitle{margin:0 0 8px;font-size:clamp(1.7rem,2.5vw,2.4rem);text-align:center;font-weight:900;}
+  .gameSub{text-align:center;font-size:1.12rem;margin:0 0 18px;line-height:1.6;}
+  .bigWord{text-align:center;font-size:clamp(2.4rem,8vw,5.2rem);font-weight:900;letter-spacing:.03em;margin:12px 0 8px;}
+  .soundBtn{display:block;margin:0 auto 18px;min-width:180px;}
+  .choiceGrid{justify-content:center;margin-top:18px;}
+  .choiceBtn{min-width:180px;min-height:88px;font-size:2rem;border-radius:22px;}
+  .feedback{margin-top:18px;text-align:center;font-size:1.3rem;font-weight:900;min-height:36px;}
+  .good{color:var(--accent2)} .bad{color:var(--danger)}
+  .modeGrid{justify-content:center;margin:20px 0 6px} .modeBtn{min-width:230px}
+  .lettersZone{display:grid;gap:16px;justify-items:center;margin-top:10px;}
+  .answerSlots{justify-content:center;min-height:94px;}
+  .slot,.tile{width:84px;height:84px;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:900;user-select:none;}
+  .slot{background:#fff;border:3px dashed rgba(37,99,235,.35);}
+  .tile{background:linear-gradient(135deg,#fef08a,#fca5a5);box-shadow:0 8px 18px rgba(0,0,0,.08);cursor:pointer;}
+  .letterBank{justify-content:center}
+  .sentence{margin:18px auto 0;max-width:900px;background:#fff;border-radius:22px;padding:18px 20px;font-size:clamp(1.25rem,2vw,1.8rem);line-height:1.7;text-align:center;box-shadow:0 8px 18px rgba(0,0,0,.08);}
+  .starRain{position:fixed;inset:0;pointer-events:none;overflow:hidden;}
+  .star{position:absolute;top:-30px;font-size:28px;animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(360deg); opacity:.9}}
+  .footerRow{display:flex;justify-content:center;gap:12px;margin-top:18px;flex-wrap:wrap;}
+  .resultBox{text-align:center;padding:30px 20px;}
+  .resultScore{font-size:clamp(2rem,5vw,4rem);font-weight:900;margin:6px 0 10px;}
+  .badge{display:inline-block;padding:12px 18px;border-radius:999px;background:#fff;font-weight:900;box-shadow:0 8px 18px rgba(0,0,0,.08);margin:4px;}
+  @media (max-width: 860px){
+    .hero{grid-template-columns:1fr}
+    .topBar{grid-template-columns:1fr 1fr}
+    .choiceBtn{min-width:140px;font-size:1.6rem}
+    .slot,.tile{width:68px;height:68px;font-size:1.8rem}
+  }
+</style>
+</head>
+<body>
+<div class="starRain" id="starRain"></div>
+<div class="wrap">
+  <section class="screen active" id="homeScreen">
+    <div class="panel hero">
+      <div>
+        <h1 class="title">⭐ Star Phonics Game</h1>
+        <p class="subtitle">vet, hop 단어들로 배우는 클릭형 파닉스 게임이에요.<br>각 세트에 16개 단어를 넣어 두었습니다.</p>
+        <div class="bubbleRow">
+          <div class="bubble">🎧 듣기</div>
+          <div class="bubble">🔤 철자 배열</div>
+          <div class="bubble">📖 문장 읽기</div>
+          <div class="bubble">🌟 점수 쌓기</div>
+        </div>
+      </div>
+      <div class="rightBox">
+        <div class="menuCard">
+          <h2 class="menuTitle">단어 세트 선택</h2>
+          <div class="setButtons">
+            
+<button class="green" onclick="startGame('vet')">short e : vet 세트</button>
+<button class="orange" onclick="startGame('hop')">short o : hop 세트</button>
+
+          </div>
+        </div>
+        <div class="menuCard">
+          <h2 class="menuTitle">게임 순서</h2>
+          <div>1) 단어 듣고 고르기 → 2) 철자 배열하기 → 3) 문장 읽기</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="gameScreen">
+    <div class="topBar">
+      <div class="stat" id="setLabel">세트</div>
+      <div class="stat" id="roundLabel">1 / 16</div>
+      <div class="stat" id="scoreLabel">점수 0</div>
+      <div class="panel" style="padding:10px 14px">
+        <div style="font-weight:900;text-align:center;margin-bottom:8px;">진행도</div>
+        <div class="progressWrap"><div class="progressBar" id="progressBar"></div></div>
+      </div>
+    </div>
+
+    <div class="gameCard">
+      <div class="modeGrid">
+        <button class="modeBtn primary" id="modeTitle">1단계</button>
+      </div>
+      <h2 class="gameTitle" id="gameTitle">단어 듣고 고르기</h2>
+      <p class="gameSub" id="gameSub">소리를 듣고 맞는 단어 카드를 누르세요.</p>
+
+      <div id="listenMode">
+        <button class="soundBtn primary" onclick="speakCurrent()">🔊 다시 듣기</button>
+        <div class="choiceGrid" id="choiceGrid"></div>
+      </div>
+
+      <div id="buildMode" style="display:none">
+        <div class="bigWord" id="buildHint">_ _ _</div>
+        <div class="lettersZone">
+          <div class="answerSlots" id="answerSlots"></div>
+          <div class="letterBank" id="letterBank"></div>
+        </div>
+        <div class="footerRow">
+          <button class="ghost" onclick="undoLetter()">↩ 되돌리기</button>
+          <button class="ghost" onclick="clearLetters()">🧹 지우기</button>
+          <button class="green" onclick="checkBuild()">✅ 확인</button>
+        </div>
+      </div>
+
+      <div id="readMode" style="display:none">
+        <div class="bigWord" id="readWord">word</div>
+        <button class="soundBtn primary" onclick="speakCurrentSentence()">🔊 문장 듣기</button>
+        <div class="sentence" id="sentenceBox"></div>
+        <div class="footerRow">
+          <button class="green" onclick="nextRound()">다음 문제 ▶</button>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="footerRow">
+      <button class="tiny ghost" onclick="goHome()">🏠 처음으로</button>
+    </div>
+  </section>
+
+  <section class="screen" id="resultScreen">
+    <div class="panel resultBox">
+      <div style="font-size:1.5rem;font-weight:900;">🎉 게임 완료!</div>
+      <div class="resultScore" id="finalScore">0점</div>
+      <div id="resultMessage" style="font-size:1.25rem;font-weight:800;margin-bottom:16px;"></div>
+      <div>
+        <span class="badge" id="bestBadge">최고 점수</span>
+        <span class="badge" id="setBadge">세트</span>
+      </div>
+      <div class="footerRow" style="margin-top:24px;">
+        <button class="green" onclick="restartGame()">다시 하기</button>
+        <button class="ghost" onclick="goHome()">처음으로</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+
+const sets = {
+  vet: [
+    {word:'vet', sentence:'The vet helps a sick pet.'},
+    {word:'net', sentence:'The net is on the bench.'},
+    {word:'pet', sentence:'My pet is wet.'},
+    {word:'wet', sentence:'My socks get wet.'},
+    {word:'jet', sentence:'A jet is in the sky.'},
+    {word:'hen', sentence:'The hen is in bed.'},
+    {word:'pen', sentence:'I have a red pen.'},
+    {word:'ten', sentence:'Ten red pens are here.'},
+    {word:'bed', sentence:'The pet is on the bed.'},
+    {word:'red', sentence:'The jet is red.'},
+    {word:'leg', sentence:'My leg is on the bed.'},
+    {word:'peg', sentence:'A peg is on the red bag.'},
+    {word:'web', sentence:'The web is on the wall.'},
+    {word:'gem', sentence:'The gem is in the red box.'},
+    {word:'men', sentence:'The men get on the jet.'},
+    {word:'bell', sentence:'The bell is red and wet.'}
+  ],
+  hop: [
+    {word:'hop', sentence:'I hop to the top.'},
+    {word:'mop', sentence:'Use the mop on the wet spot.'},
+    {word:'top', sentence:'The top is on the box.'},
+    {word:'pop', sentence:'Pop the lid on the pot.'},
+    {word:'pot', sentence:'The pot is hot.'},
+    {word:'hot', sentence:'The hot pot is on top.'},
+    {word:'box', sentence:'The dog sits by the box.'},
+    {word:'fox', sentence:'The fox can hop.'},
+    {word:'dog', sentence:'The dog is on the log.'},
+    {word:'log', sentence:'A frog is on the log.'},
+    {word:'rock', sentence:'The rock is on the box.'},
+    {word:'sock', sentence:'The sock is on top.'},
+    {word:'mom', sentence:'Mom has a hot pot.'},
+    {word:'nod', sentence:'Nod to the dog.'},
+    {word:'cop', sentence:'The cop can hop.'},
+    {word:'fog', sentence:'The dog is in the fog.'}
+  ]
+};
+
+
+let currentSetKey = 'vet';
+let words = [];
+let round = 0;
+let score = 0;
+let current = null;
+let mode = 'listen';
+let answerLetters = [];
+let lastSetKey = 'vet';
+
+const homeScreen = document.getElementById('homeScreen');
+const gameScreen = document.getElementById('gameScreen');
+const resultScreen = document.getElementById('resultScreen');
+const setLabel = document.getElementById('setLabel');
+const roundLabel = document.getElementById('roundLabel');
+const scoreLabel = document.getElementById('scoreLabel');
+const progressBar = document.getElementById('progressBar');
+const modeTitle = document.getElementById('modeTitle');
+const gameTitle = document.getElementById('gameTitle');
+const gameSub = document.getElementById('gameSub');
+const choiceGrid = document.getElementById('choiceGrid');
+const feedback = document.getElementById('feedback');
+const buildHint = document.getElementById('buildHint');
+const answerSlots = document.getElementById('answerSlots');
+const letterBank = document.getElementById('letterBank');
+const readWord = document.getElementById('readWord');
+const sentenceBox = document.getElementById('sentenceBox');
+
+function shuffle(arr){
+  const copy = [...arr];
+  for(let i = copy.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; }
+  return copy;
+}
+
+function showScreen(name){
+  homeScreen.classList.remove('active'); gameScreen.classList.remove('active'); resultScreen.classList.remove('active');
+  if(name === 'home') homeScreen.classList.add('active');
+  if(name === 'game') gameScreen.classList.add('active');
+  if(name === 'result') resultScreen.classList.add('active');
+}
+
+function startGame(setKey){
+  lastSetKey = setKey; currentSetKey = setKey;
+  words = shuffle([...sets[setKey]]);
+  round = 0; score = 0; updateStats(); showScreen('game'); nextRound(true);
+}
+
+function restartGame(){ startGame(lastSetKey); }
+function goHome(){ window.speechSynthesis.cancel(); showScreen('home'); }
+
+function updateStats(){
+  const labelMap = {vet:'short e : vet 세트', hop:'short o : hop 세트'};
+  setLabel.textContent = labelMap[currentSetKey];
+  roundLabel.textContent = `${Math.min(round + 1, words.length)} / ${words.length}`;
+  scoreLabel.textContent = `점수 ${score}`;
+  progressBar.style.width = `${(round / words.length) * 100}%`;
+}
+
+function setMode(newMode){
+  mode = newMode;
+  document.getElementById('listenMode').style.display = newMode === 'listen' ? 'block' : 'none';
+  document.getElementById('buildMode').style.display = newMode === 'build' ? 'block' : 'none';
+  document.getElementById('readMode').style.display = newMode === 'read' ? 'block' : 'none';
+  if(newMode === 'listen'){ modeTitle.textContent='1단계'; gameTitle.textContent='단어 듣고 고르기'; gameSub.textContent='소리를 듣고 맞는 단어 카드를 누르세요.'; }
+  else if(newMode === 'build'){ modeTitle.textContent='2단계'; gameTitle.textContent='철자 배열하기'; gameSub.textContent='글자 칩을 눌러 알맞은 단어를 완성하세요.'; }
+  else { modeTitle.textContent='3단계'; gameTitle.textContent='문장 읽기'; gameSub.textContent='단어가 들어간 짧은 문장을 듣고 따라 읽어 보세요.'; }
+  feedback.textContent=''; feedback.className='feedback';
+}
+
+function nextRound(initial=false){
+  if(!initial) round++;
+  if(round >= words.length){ finishGame(); return; }
+  current = words[round]; updateStats(); setupListenRound();
+}
+
+function setupListenRound(){
+  setMode('listen'); choiceGrid.innerHTML='';
+  const pool = shuffle([current.word, ...shuffle(words.filter(w => w.word !== current.word)).slice(0, 2).map(w => w.word)]);
+  pool.forEach(word => {
+    const btn = document.createElement('button');
+    btn.className='choiceBtn'; btn.textContent=word; btn.onclick=() => chooseWord(word);
+    choiceGrid.appendChild(btn);
+  });
+  setTimeout(() => speakCurrent(), 400);
+}
+
+function chooseWord(word){
+  if(word === current.word){ score += 10; burstStars(); feedback.textContent='정답!'; feedback.className='feedback good'; updateStats(); setTimeout(setupBuildRound, 700); }
+  else { feedback.textContent='다시 들어 보고 골라 보세요.'; feedback.className='feedback bad'; speakCurrent(); }
+}
+
+function setupBuildRound(){
+  setMode('build'); answerLetters = []; renderAnswerSlots(); renderLetterBank();
+  buildHint.textContent = current.word.split('').map(_ => '_').join(' ');
+}
+
+function renderAnswerSlots(){
+  answerSlots.innerHTML = '';
+  for(let i = 0; i < current.word.length; i++){ const d = document.createElement('div'); d.className='slot'; d.textContent=answerLetters[i] || ''; answerSlots.appendChild(d); }
+}
+
+function renderLetterBank(){
+  letterBank.innerHTML = '';
+  const letters = shuffle(current.word.split(''));
+  letters.forEach((ch, idx) => {
+    const tile = document.createElement('div');
+    tile.className='tile'; tile.textContent=ch; tile.onclick=() => addLetter(idx, ch); tile.dataset.idx=idx;
+    letterBank.appendChild(tile);
+  });
+}
+
+function addLetter(idx, ch){
+  const tiles = [...letterBank.querySelectorAll('.tile')];
+  const tile = tiles.find(t => Number(t.dataset.idx) === idx && t.style.visibility !== 'hidden');
+  if(!tile || answerLetters.length >= current.word.length) return;
+  answerLetters.push(ch); tile.style.visibility='hidden'; renderAnswerSlots();
+}
+
+function undoLetter(){
+  if(answerLetters.length === 0) return;
+  const removed = answerLetters.pop();
+  const hiddenTile = [...letterBank.querySelectorAll('.tile')].find(t => t.textContent === removed && t.style.visibility === 'hidden');
+  if(hiddenTile) hiddenTile.style.visibility='visible';
+  renderAnswerSlots();
+}
+
+function clearLetters(){ answerLetters=[]; [...letterBank.querySelectorAll('.tile')].forEach(t => t.style.visibility='visible'); renderAnswerSlots(); }
+
+function checkBuild(){
+  const made = answerLetters.join('');
+  if(made.length !== current.word.length){ feedback.textContent='칸을 모두 채워 주세요.'; feedback.className='feedback bad'; return; }
+  if(made === current.word){ score += 10; burstStars(); feedback.textContent='잘했어요!'; feedback.className='feedback good'; updateStats(); setTimeout(setupReadRound, 700); }
+  else { feedback.textContent='조금만 더 생각해 보세요.'; feedback.className='feedback bad'; }
+}
+
+function setupReadRound(){ setMode('read'); readWord.textContent=current.word; sentenceBox.textContent=current.sentence; speakCurrentSentence(); }
+
+function finishGame(){
+  progressBar.style.width='100%';
+  const bestKey = `best_${lastSetKey}`;
+  const prevBest = Number(localStorage.getItem(bestKey) || 0);
+  if(score > prevBest) localStorage.setItem(bestKey, score);
+  const best = Math.max(score, prevBest);
+  document.getElementById('finalScore').textContent=`${score}점`;
+  document.getElementById('bestBadge').textContent=`최고 점수 ${best}점`;
+  document.getElementById('setBadge').textContent='선택한 세트';
+  const msg = score >= words.length*18 ? '완벽해요! 파닉스 스타!' : score >= words.length*14 ? '아주 잘했어요!' : '좋아요! 한 번 더 하면 더 잘할 수 있어요!';
+  document.getElementById('resultMessage').textContent=msg;
+  showScreen('result'); burstStars(40);
+}
+
+function getEnglishVoice(){
+  const voices = speechSynthesis.getVoices();
+  return voices.find(v => /en-US/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang)) || voices[0];
+}
+
+function speakText(text, repeat=2, rate=0.9){
+  window.speechSynthesis.cancel();
+  const voice = getEnglishVoice();
+  let delay = 0;
+  for(let i=0;i<repeat;i++) {
+    setTimeout(() => {
+      const u = new SpeechSynthesisUtterance('\u200B, ' + text);
+      u.lang='en-US'; if(voice) u.voice=voice; u.rate=rate; u.pitch=1; speechSynthesis.speak(u);
+    }, delay);
+    delay += 1100;
+  }
+}
+
+function speakCurrent(){ if(current) speakText(current.word, 2, 0.85); }
+function speakCurrentSentence(){ if(current) speakText(current.sentence, 1, 0.92); }
+
+function burstStars(count=18){
+  const rain = document.getElementById('starRain');
+  for(let i=0;i<count;i++) {
+    const s = document.createElement('div');
+    s.className='star'; s.textContent=['⭐','✨','🌟'][Math.floor(Math.random()*3)];
+    s.style.left = Math.random()*100 + 'vw';
+    s.style.animationDuration = (2 + Math.random()*2.5) + 's';
+    s.style.opacity = .75 + Math.random()*.25;
+    rain.appendChild(s);
+    setTimeout(() => s.remove(), 4600);
+  }
+}
+window.speechSynthesis.onvoiceschanged = () => {};
+</script>
+</body>
+</html>
