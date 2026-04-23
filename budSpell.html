@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Build the Word - Short u</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #c7d2fe, #dbeafe);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  .app {
+    width: 90%;
+    max-width: 760px;
+    background: white;
+    border-radius: 25px;
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    text-align: center;
+  }
+
+  h1 {
+    color: #1e3a8a;
+    margin-bottom: 10px;
+  }
+
+  .progress {
+    margin: 10px 0 20px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #334155;
+  }
+
+  .letters, .answer {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
+
+  .letter, .slot {
+    width: 80px;
+    height: 80px;
+    border-radius: 18px;
+    font-size: 36px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+
+  .letter {
+    background: #60a5fa;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+  }
+
+  .letter:hover {
+    transform: translateY(-2px);
+  }
+
+  .letter.used {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .slot {
+    border: 3px dashed #94a3b8;
+    background: #f8fafc;
+    color: #1e293b;
+    cursor: pointer;
+  }
+
+  button {
+    padding: 12px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 12px;
+    margin: 6px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .check { background: #10b981; color: white; }
+  .reset { background: #f59e0b; color: white; }
+
+  .message {
+    margin-top: 16px;
+    font-size: 22px;
+    font-weight: bold;
+    min-height: 32px;
+  }
+
+  .correct { color: #059669; }
+  .wrong { color: #dc2626; }
+
+  @media (max-width: 640px) {
+    .letter, .slot {
+      width: 68px;
+      height: 68px;
+      font-size: 30px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <h1>🔤 Build the Word</h1>
+  <div class="progress" id="progress"></div>
+
+  <div class="letters" id="letters"></div>
+  <div class="answer" id="answer"></div>
+
+  <button class="check" onclick="checkAnswer()">확인</button>
+  <button class="reset" onclick="resetAnswer()">지우기</button>
+
+  <div class="message" id="message"></div>
+</div>
+
+<script>
+const words = [
+  "bug","mug","hug","rug",
+  "fun","bun","sun","run",
+  "bud","mud","cut","nut"
+];
+
+let current = 0;
+let selected = [];
+let puzzleLetters = [];
+let patternOrder = [];
+
+function shuffle(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+// 0 = u + 앞자음 + 뒤자음
+// 1 = u + 뒤자음 + 앞자음
+function makeRandomPatternOrder(length) {
+  const half = Math.floor(length / 2);
+  const patterns = [];
+
+  for (let i = 0; i < half; i++) patterns.push(0);
+  for (let i = half; i < length; i++) patterns.push(1);
+
+  return shuffle(patterns);
+}
+
+function makePuzzle(word, patternType) {
+  const first = word[0];
+  const vowel = word[1];
+  const last = word[2];
+
+  if (patternType === 0) {
+    return [vowel, first, last];
+  } else {
+    return [vowel, last, first];
+  }
+}
+
+function speakWord(word) {
+  speechSynthesis.cancel();
+
+  const first = new SpeechSynthesisUtterance("\u200B," + word);
+  first.lang = "en-US";
+  first.rate = 0.78;
+
+  const second = new SpeechSynthesisUtterance(word);
+  second.lang = "en-US";
+  second.rate = 0.95;
+
+  speechSynthesis.speak(first);
+  setTimeout(() => {
+    speechSynthesis.speak(second);
+  }, 800);
+}
+
+function loadQuestion() {
+  selected = [];
+  puzzleLetters = makePuzzle(words[current], patternOrder[current]);
+
+  document.getElementById("message").textContent = "";
+  document.getElementById("message").className = "message";
+  document.getElementById("progress").textContent = `${current + 1} / ${words.length}`;
+
+  renderLetters();
+  renderAnswer();
+}
+
+function renderLetters() {
+  const lettersDiv = document.getElementById("letters");
+  lettersDiv.innerHTML = "";
+
+  puzzleLetters.forEach((letter, index) => {
+    const div = document.createElement("div");
+    div.className = "letter";
+
+    if (selected.includes(index)) {
+      div.classList.add("used");
+    }
+
+    div.textContent = letter;
+    div.onclick = () => addLetter(index);
+    lettersDiv.appendChild(div);
+  });
+}
+
+function renderAnswer() {
+  const answerDiv = document.getElementById("answer");
+  answerDiv.innerHTML = "";
+
+  for (let i = 0; i < 3; i++) {
+    const slot = document.createElement("div");
+    slot.className = "slot";
+
+    if (selected[i] !== undefined) {
+      slot.textContent = puzzleLetters[selected[i]];
+      slot.onclick = () => removeLetter(i);
+    } else {
+      slot.textContent = "";
+    }
+
+    answerDiv.appendChild(slot);
+  }
+}
+
+function addLetter(letterIndex) {
+  if (selected.length >= 3) return;
+  if (selected.includes(letterIndex)) return;
+
+  selected.push(letterIndex);
+  renderLetters();
+  renderAnswer();
+}
+
+function removeLetter(slotIndex) {
+  selected.splice(slotIndex, 1);
+  renderLetters();
+  renderAnswer();
+}
+
+function resetAnswer() {
+  selected = [];
+  renderLetters();
+  renderAnswer();
+  document.getElementById("message").textContent = "";
+  document.getElementById("message").className = "message";
+}
+
+function checkAnswer() {
+  const correct = words[current].trim().toLowerCase();
+
+  // 확인 버튼 누르면 단어 읽기
+  speakWord(correct);
+
+  if (selected.length !== 3) {
+    document.getElementById("message").textContent = "세 글자를 모두 완성하세요.";
+    document.getElementById("message").className = "message wrong";
+    return;
+  }
+
+  const user = selected.map(i => puzzleLetters[i]).join("").trim().toLowerCase();
+
+  if (user === correct) {
+    document.getElementById("message").textContent = "정답 👍";
+    document.getElementById("message").className = "message correct";
+
+    setTimeout(() => {
+      current++;
+      if (current < words.length) {
+        loadQuestion();
+      } else {
+        document.getElementById("progress").textContent = `${words.length} / ${words.length}`;
+        document.getElementById("letters").innerHTML = "";
+        document.getElementById("answer").innerHTML = "";
+        document.getElementById("message").textContent = "완료 🎉";
+        document.getElementById("message").className = "message correct";
+      }
+    }, 900);
+
+  } else {
+    document.getElementById("message").textContent = "다시 시도!";
+    document.getElementById("message").className = "message wrong";
+  }
+}
+
+function startGame() {
+  current = 0;
+  patternOrder = makeRandomPatternOrder(words.length);
+  loadQuestion();
+}
+
+startGame();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Star Phonics</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(#4facfe,#e0f2fe);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+
+.game{
+  width:90%;
+  max-width:900px;
+  background:white;
+  border-radius:30px;
+  padding:25px;
+  text-align:center;
+  box-shadow:0 20px 40px rgba(0,0,0,0.15);
+}
+
+.title{
+  font-size:2rem;
+  font-weight:bold;
+  color:#1e40af;
+}
+
+.status{
+  margin:10px;
+  font-weight:bold;
+}
+
+.listen-btn{
+  font-size:2.5rem;
+  margin:20px;
+  padding:20px;
+  border:none;
+  border-radius:50%;
+  background:#facc15;
+  cursor:pointer;
+}
+
+.answer,.choices{
+  display:flex;
+  justify-content:center;
+  gap:15px;
+  margin:20px;
+  flex-wrap:wrap;
+}
+
+.slot,.chip{
+  width:90px;
+  height:90px;
+  border-radius:20px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:40px;
+  font-weight:bold;
+}
+
+.slot{
+  border:3px dashed #60a5fa;
+}
+
+.chip{
+  background:#3b82f6;
+  color:white;
+  cursor:pointer;
+}
+
+.chip.used{
+  visibility:hidden;
+}
+
+button{
+  margin:5px;
+  padding:12px 20px;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.check{background:#10b981;color:white;}
+.clear{background:#f59e0b;color:white;}
+
+.message{
+  font-size:1.5rem;
+  font-weight:bold;
+  min-height:40px;
+}
+
+.correct{color:green;}
+.wrong{color:red;}
+.info{color:#2563eb;}
+
+.star{
+  position:fixed;
+  top:-20px;
+  font-size:24px;
+  animation:fall 1.5s linear;
+  pointer-events:none;
+}
+
+@keyframes fall{
+  to{transform:translateY(110vh) rotate(360deg);opacity:0;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="game">
+  <div class="title">⭐ Star Phonics</div>
+  <div class="status" id="status"></div>
+
+  <button class="listen-btn" onclick="speak()">🔊</button>
+
+  <div class="answer" id="answer"></div>
+  <div class="choices" id="choices"></div>
+
+  <button class="check" onclick="check()">확인</button>
+  <button class="clear" onclick="clearAns()">지우기</button>
+
+  <div class="message info" id="message">🔊 눌러서 듣고 맞추세요</div>
+</div>
+
+<script>
+const words = [
+  "bug","mug","hug","rug",
+  "fun","bun","sun","run",
+  "bud","mud","cut","nut"
+];
+
+let list = [...words].sort(()=>Math.random()-0.5);
+let i = 0, score = 0;
+let selected = [], puzzle = [];
+let autoReadNext = false;
+
+function speak(){
+  if(i >= list.length) return;
+
+  const w = list[i];
+  speechSynthesis.cancel();
+
+  const u = new SpeechSynthesisUtterance("\u200B," + w);
+  u.lang = "en-US";
+  u.rate = 0.8;
+
+  const u2 = new SpeechSynthesisUtterance(w);
+  u2.lang = "en-US";
+  u2.rate = 0.95;
+
+  speechSynthesis.speak(u);
+  setTimeout(() => speechSynthesis.speak(u2), 700);
+}
+
+function build(w){
+  const [a,b,c] = w.split("");
+  return Math.random() < 0.5 ? [b,a,c] : [b,c,a];
+}
+
+function load(){
+  if(i >= list.length){
+    document.getElementById("status").innerText =
+      list.length + " / " + list.length + "   ⭐" + score;
+    document.getElementById("answer").innerHTML = "";
+    document.getElementById("choices").innerHTML = "";
+    msg("완료 🎉", true);
+    return;
+  }
+
+  selected = [];
+  puzzle = build(list[i]);
+
+  document.getElementById("status").innerText =
+    (i+1) + " / " + list.length + "   ⭐" + score;
+
+  draw();
+
+  if(autoReadNext){
+    setTimeout(() => {
+      speak();
+      autoReadNext = false;
+    }, 350);
+  }
+}
+
+function draw(){
+  const ans = document.getElementById("answer");
+  const ch = document.getElementById("choices");
+  ans.innerHTML = "";
+  ch.innerHTML = "";
+
+  for(let j=0; j<3; j++){
+    const s = document.createElement("div");
+    s.className = "slot";
+    if(selected[j] != undefined){
+      s.innerText = puzzle[selected[j]];
+      s.onclick = () => remove(j);
+    }
+    ans.appendChild(s);
+  }
+
+  puzzle.forEach((l, idx) => {
+    const c = document.createElement("div");
+    c.className = "chip";
+    if(selected.includes(idx)) c.classList.add("used");
+    c.innerText = l;
+    c.onclick = () => add(idx);
+    ch.appendChild(c);
+  });
+}
+
+function add(idx){
+  if(selected.length < 3 && !selected.includes(idx)){
+    selected.push(idx);
+    draw();
+  }
+}
+
+function remove(idx){
+  selected.splice(idx, 1);
+  draw();
+}
+
+function clearAns(){
+  selected = [];
+  draw();
+}
+
+function check(){
+  speechSynthesis.cancel();
+
+  const correct = list[i];
+
+  if(selected.length < 3){
+    msg("3글자 완성!", false);
+    return;
+  }
+
+  const user = selected.map(x => puzzle[x]).join("");
+
+  if(user === correct){
+    score++;
+    msg("정답 ⭐", true);
+    stars();
+
+    setTimeout(() => {
+      i++;
+      if(i < list.length){
+        autoReadNext = true;
+        load();
+        msg("잘했어요! 다음 문제를 들어 보세요.", true);
+      } else {
+        load();
+      }
+    }, 900);
+
+  } else {
+    msg("다시!", false);
+  }
+}
+
+function msg(t, ok){
+  const m = document.getElementById("message");
+  m.innerText = t;
+  m.className = "message " + (ok ? "correct" : "wrong");
+}
+
+function stars(){
+  for(let k=0; k<10; k++){
+    const s = document.createElement("div");
+    s.className = "star";
+    s.innerText = "⭐";
+    s.style.left = Math.random()*100 + "vw";
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1500);
+  }
+}
+
+load();
+</script>
+
+</body>
+</html>

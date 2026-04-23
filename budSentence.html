@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Short u Reading Practice</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #dbeafe 0%, #eff6ff 50%, #f8fafc 100%);
+      color: #0f172a;
+      padding: 24px;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: #1d4ed8;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 28px;
+    }
+
+    .section {
+      background: rgba(255,255,255,0.9);
+      border-radius: 28px;
+      box-shadow: 0 14px 32px rgba(30, 64, 175, 0.10);
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 2px solid #dbeafe;
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #1e40af;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    .grid.phrases {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .grid.sentences {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      border: none;
+      border-radius: 24px;
+      min-height: 90px;
+      padding: 18px 16px;
+      font-size: 2rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.25;
+    }
+
+    .phrase-card {
+      font-size: 1.8rem;
+      min-height: 100px;
+    }
+
+    .sentence-card {
+      justify-content: flex-start;
+      text-align: left;
+      font-size: 1.6rem;
+      min-height: 110px;
+      padding: 20px 22px;
+      gap: 12px;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 22px rgba(0,0,0,0.12);
+    }
+
+    .card:active {
+      transform: scale(0.98);
+    }
+
+    .blue { background: #dbeafe; color: #1e3a8a; }
+    .green { background: #dcfce7; color: #166534; }
+    .yellow { background: #fef3c7; color: #92400e; }
+    .pink { background: #fce7f3; color: #9d174d; }
+    .purple { background: #ede9fe; color: #5b21b6; }
+    .sky { background: #e0f2fe; color: #0c4a6e; }
+
+    .num {
+      flex: 0 0 auto;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.85);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+    }
+
+    .text {
+      flex: 1;
+    }
+
+    .control-box {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .control-btn {
+      border: none;
+      border-radius: 18px;
+      padding: 14px 22px;
+      font-size: 1rem;
+      font-weight: 800;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 8px 16px rgba(37,99,235,0.22);
+      margin: 0 6px 10px;
+    }
+
+    .hint {
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 768px) {
+      body { padding: 14px; }
+      .title { font-size: 1.9rem; }
+      .section-title { font-size: 1.5rem; }
+      .phrase-card { font-size: 1.45rem; }
+      .sentence-card { font-size: 1.25rem; min-height: 96px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="title">Short u Reading Practice</div>
+    <div class="subtitle">Click each card to listen and read aloud.</div>
+
+    <div class="control-box">
+      <button class="control-btn" onclick="stopSpeech()">멈추기</button>
+      <div class="hint">카드를 클릭하면 자연속도로 한 번 읽어 줍니다.</div>
+    </div>
+
+    <section class="section">
+      <div class="section-title">Phrases</div>
+      <div class="grid phrases" id="phrasesGrid"></div>
+    </section>
+
+    <section class="section">
+      <div class="section-title">Sentences</div>
+      <div class="grid sentences" id="sentencesGrid"></div>
+    </section>
+  </div>
+
+  <script>
+    const phrases = [
+      "a bug",
+      "a mug",
+      "a hug",
+      "a rug",
+      "have fun",
+      "a bun",
+      "the sun",
+      "run fast",
+      "a bud",
+      "in the mud",
+      "cut it",
+      "a nut"
+    ];
+
+    const sentences = [
+      "1. I see a bug.",
+      "2. This is a mug.",
+      "3. I want a hug.",
+      "4. The rug is big.",
+      "5. We have fun in the sun.",
+      "6. I eat a bun.",
+      "7. I run in the sun.",
+      "8. The bud is small.",
+      "9. My shoes are in the mud.",
+      "10. Cut the paper.",
+      "11. The nut is on the rug.",
+      "12. I run and have fun."
+    ];
+
+    let voiceList = [];
+    let preferredVoice = null;
+
+    function loadVoices() {
+      voiceList = speechSynthesis.getVoices();
+      preferredVoice =
+        voiceList.find(v => /en-US/i.test(v.lang) && /Google|Microsoft|Samantha|Daniel|Karen|Jenny|Aria|Guy|Emma/i.test(v.name)) ||
+        voiceList.find(v => /en-US/i.test(v.lang)) ||
+        voiceList.find(v => /^en/i.test(v.lang)) ||
+        null;
+    }
+
+    loadVoices();
+    if ("onvoiceschanged" in speechSynthesis) {
+      speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    function speak(text) {
+      speechSynthesis.cancel();
+
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "en-US";
+      utter.rate = 1.0;
+      utter.pitch = 1.0;
+      utter.volume = 1;
+
+      if (preferredVoice) utter.voice = preferredVoice;
+
+      speechSynthesis.speak(utter);
+    }
+
+    function stopSpeech() {
+      speechSynthesis.cancel();
+    }
+
+    function makeCard(text, className, colorClass, target, withNumber = false) {
+      const btn = document.createElement("button");
+      btn.className = `card ${className} ${colorClass}`;
+      btn.type = "button";
+
+      if (withNumber) {
+        const match = text.match(/^(\d+)\.\s*(.*)$/);
+        const number = match ? match[1] : "";
+        const sentenceText = match ? match[2] : text;
+
+        btn.innerHTML = `
+          <span class="num">${number}</span>
+          <span class="text">${sentenceText}</span>
+        `;
+        btn.addEventListener("click", () => speak(sentenceText));
+      } else {
+        btn.textContent = text;
+        btn.addEventListener("click", () => speak(text));
+      }
+
+      target.appendChild(btn);
+    }
+
+    const colors = ["blue", "green", "yellow", "pink", "purple", "sky"];
+
+    const phrasesGrid = document.getElementById("phrasesGrid");
+    phrases.forEach((phrase, idx) => {
+      makeCard(phrase, "phrase-card", colors[idx % colors.length], phrasesGrid);
+    });
+
+    const sentencesGrid = document.getElementById("sentencesGrid");
+    sentences.forEach((sentence, idx) => {
+      makeCard(sentence, "sentence-card", colors[idx % colors.length], sentencesGrid, true);
+    });
+
+    window.addEventListener("beforeunload", () => {
+      speechSynthesis.cancel();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Listen and Type - Short u</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #dbeafe, #e0f2fe, #ede9fe);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .app {
+      width: 100%;
+      max-width: 860px;
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(8px);
+      border-radius: 28px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+      padding: 28px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #1e3a8a;
+    }
+    .counter {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #334155;
+      background: #eef2ff;
+      padding: 10px 14px;
+      border-radius: 14px;
+    }
+    .progress-wrap {
+      width: 100%;
+      height: 18px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 26px;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #60a5fa, #34d399);
+      transition: width 0.35s ease;
+    }
+    .card {
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      border-radius: 24px;
+      padding: 34px 24px;
+      text-align: center;
+      border: 2px solid #dbeafe;
+      min-height: 410px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .instruction {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 18px;
+    }
+    .speaker-btn {
+      border: none;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: white;
+      font-size: 3rem;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 12px 24px rgba(59,130,246,0.28);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      margin-bottom: 24px;
+    }
+    .speaker-btn:hover {
+      transform: scale(1.05);
+    }
+    .speaker-btn:active {
+      transform: scale(0.98);
+    }
+    .input-box {
+      width: min(92%, 420px);
+      font-size: 2rem;
+      padding: 18px 20px;
+      border-radius: 18px;
+      border: 3px solid #93c5fd;
+      text-align: center;
+      outline: none;
+      margin-bottom: 16px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .input-box:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 5px rgba(37,99,235,0.12);
+    }
+    .buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    button.action {
+      border: none;
+      border-radius: 16px;
+      padding: 14px 22px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    button.action:hover { transform: translateY(-1px); }
+    .check-btn {
+      background: #10b981;
+      color: white;
+    }
+    .replay-btn {
+      background: #f59e0b;
+      color: white;
+    }
+    .next-btn {
+      background: #6366f1;
+      color: white;
+      display: none;
+    }
+    .message {
+      min-height: 42px;
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin-top: 18px;
+      text-align: center;
+    }
+    .correct { color: #059669; }
+    .wrong { color: #dc2626; }
+    .info { color: #2563eb; }
+    .answer {
+      margin-top: 12px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #7c3aed;
+      display: none;
+    }
+    .tries {
+      margin-top: 12px;
+      font-size: 1.05rem;
+      color: #475569;
+      font-weight: 700;
+    }
+    .finish {
+      display: none;
+      text-align: center;
+      padding: 24px 10px 10px;
+    }
+    .finish h2 {
+      font-size: 2.3rem;
+      color: #1d4ed8;
+      margin-bottom: 12px;
+    }
+    .finish p {
+      font-size: 1.3rem;
+      color: #334155;
+      font-weight: 700;
+    }
+    .restart-btn {
+      margin-top: 20px;
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      padding: 16px 26px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    @media (max-width: 640px) {
+      .app { padding: 18px; }
+      .title { font-size: 1.5rem; }
+      .instruction { font-size: 1.15rem; }
+      .input-box { font-size: 1.6rem; }
+      .speaker-btn {
+        width: 92px;
+        height: 92px;
+        font-size: 2.4rem;
+      }
+      .card { min-height: 380px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="title">🎧 Listen and Type</div>
+      <div class="counter" id="counter">1 / 12</div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="card" id="quizCard">
+      <div class="instruction">버튼을 눌러 듣고, 알맞은 철자를 쓰세요.</div>
+
+      <button class="speaker-btn" id="speakBtn" title="Listen">🔊</button>
+
+      <input
+        type="text"
+        id="answerInput"
+        class="input-box"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        placeholder="type here"
+      />
+
+      <div class="buttons">
+        <button class="action replay-btn" id="replayBtn">다시 듣기</button>
+        <button class="action check-btn" id="checkBtn">확인</button>
+        <button class="action next-btn" id="nextBtn">다음</button>
+      </div>
+
+      <div class="tries" id="triesText">시도: 0 / 3</div>
+      <div class="message info" id="message">처음 문제는 자동으로 두 번 읽어 줍니다.</div>
+      <div class="answer" id="answerBox"></div>
+    </div>
+
+    <div class="finish" id="finishBox">
+      <h2>수고하셨습니다! 🎉</h2>
+      <p id="finishText">모든 단어를 완성했어요.</p>
+      <button class="restart-btn" id="restartBtn">다시 시작</button>
+    </div>
+  </div>
+
+  <script>
+    const words = [
+      "bug", "mug", "hug", "rug",
+      "fun", "bun", "sun", "run",
+      "bud", "mud", "cut", "nut"
+    ];
+
+    let quizWords = [...words];
+    let currentIndex = 0;
+    let tries = 0;
+    let solved = false;
+    let autoPlayed = false;
+
+    const counter = document.getElementById("counter");
+    const progressBar = document.getElementById("progressBar");
+    const answerInput = document.getElementById("answerInput");
+    const message = document.getElementById("message");
+    const answerBox = document.getElementById("answerBox");
+    const triesText = document.getElementById("triesText");
+    const nextBtn = document.getElementById("nextBtn");
+    const speakBtn = document.getElementById("speakBtn");
+    const replayBtn = document.getElementById("replayBtn");
+    const checkBtn = document.getElementById("checkBtn");
+    const quizCard = document.getElementById("quizCard");
+    const finishBox = document.getElementById("finishBox");
+    const finishText = document.getElementById("finishText");
+    const restartBtn = document.getElementById("restartBtn");
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function normalize(text) {
+      return text.trim().toLowerCase();
+    }
+
+    function updateProgress() {
+      counter.textContent = `${currentIndex + 1} / ${quizWords.length}`;
+      const percent = (currentIndex / quizWords.length) * 100;
+      progressBar.style.width = `${percent}%`;
+    }
+
+    function setMessage(text, cls) {
+      message.textContent = text;
+      message.className = `message ${cls}`;
+    }
+
+    function speakWord(word) {
+      speechSynthesis.cancel();
+
+      const first = new SpeechSynthesisUtterance("\u200B," + word);
+      first.lang = "en-US";
+      first.rate = 0.78;
+
+      const second = new SpeechSynthesisUtterance(word);
+      second.lang = "en-US";
+      second.rate = 0.95;
+
+      speechSynthesis.speak(first);
+      setTimeout(() => {
+        speechSynthesis.speak(second);
+      }, 850);
+    }
+
+    function loadQuestion() {
+      if (currentIndex >= quizWords.length) {
+        finishQuiz();
+        return;
+      }
+
+      tries = 0;
+      solved = false;
+      autoPlayed = false;
+      answerInput.value = "";
+      answerInput.disabled = false;
+      answerInput.focus();
+      answerBox.style.display = "none";
+      answerBox.textContent = "";
+      nextBtn.style.display = "none";
+      triesText.textContent = `시도: ${tries} / 3`;
+      setMessage("처음 문제는 자동으로 두 번 읽어 줍니다.", "info");
+      updateProgress();
+
+      setTimeout(() => {
+        speakCurrentWord();
+      }, 500);
+    }
+
+    function speakCurrentWord() {
+      if (currentIndex < quizWords.length) {
+        speakWord(quizWords[currentIndex]);
+        autoPlayed = true;
+      }
+    }
+
+    function checkAnswer() {
+      if (solved) return;
+
+      const userAnswer = normalize(answerInput.value);
+      const correctAnswer = quizWords[currentIndex];
+
+      if (!userAnswer) {
+        setMessage("철자를 입력해 주세요.", "wrong");
+        answerInput.focus();
+        return;
+      }
+
+      if (userAnswer === correctAnswer) {
+        solved = true;
+        answerInput.disabled = true;
+        setMessage("정답입니다! 👍", "correct");
+        nextBtn.style.display = "inline-block";
+        progressBar.style.width = `${((currentIndex + 1) / quizWords.length) * 100}%`;
+        return;
+      }
+
+      tries++;
+      triesText.textContent = `시도: ${tries} / 3`;
+
+      if (tries < 3) {
+        setMessage("다시 들어 보고 한 번 더 써 보세요.", "wrong");
+        answerInput.select();
+        speakCurrentWord();
+      } else {
+        setMessage("정답을 확인하고 그대로 입력해 보세요.", "wrong");
+        answerBox.textContent = `정답: ${correctAnswer}`;
+        answerBox.style.display = "block";
+        answerInput.select();
+        speakCurrentWord();
+      }
+    }
+
+    function nextQuestion() {
+      currentIndex++;
+      loadQuestion();
+    }
+
+    function finishQuiz() {
+      quizCard.style.display = "none";
+      finishBox.style.display = "block";
+      finishText.textContent = `총 ${quizWords.length}개 단어를 모두 완성했어요.`;
+      counter.textContent = `${quizWords.length} / ${quizWords.length}`;
+      progressBar.style.width = "100%";
+      speechSynthesis.cancel();
+    }
+
+    function restartQuiz() {
+      quizWords = shuffle([...words]);
+      currentIndex = 0;
+      finishBox.style.display = "none";
+      quizCard.style.display = "flex";
+      loadQuestion();
+    }
+
+    speakBtn.addEventListener("click", () => {
+      speakCurrentWord();
+      answerInput.focus();
+    });
+
+    replayBtn.addEventListener("click", () => {
+      speakCurrentWord();
+      answerInput.focus();
+    });
+
+    checkBtn.addEventListener("click", checkAnswer);
+    nextBtn.addEventListener("click", nextQuestion);
+    restartBtn.addEventListener("click", restartQuiz);
+
+    answerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        if (!solved) {
+          checkAnswer();
+        } else {
+          nextQuestion();
+        }
+      }
+    });
+
+    answerInput.addEventListener("paste", (e) => e.preventDefault());
+    answerInput.addEventListener("copy", (e) => e.preventDefault());
+    answerInput.addEventListener("cut", (e) => e.preventDefault());
+    answerInput.addEventListener("drop", (e) => e.preventDefault());
+
+    window.addEventListener("load", () => {
+      quizWords = shuffle([...words]);
+      loadQuestion();
+    });
+  </script>
+</body>
+</html>
