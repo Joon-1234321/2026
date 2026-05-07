@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Long Vowel 철자 배열 완성하기</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #89f7fe, #66a6ff);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+  }
+  .wrap { width: 100%; max-width: 900px; }
+  .card {
+    background: rgba(255,255,255,0.96);
+    border-radius: 28px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+    padding: 34px 28px;
+    text-align: center;
+  }
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
+  .count { font-size: 1.25rem; font-weight: 700; color: #1e3a8a; }
+  .progress-wrap { width: 100%; height: 16px; background: #dbeafe; border-radius: 999px; overflow: hidden; margin: 10px 0 28px; }
+  .progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #2563eb, #10b981); transition: width 0.35s ease; }
+  .title { font-size: 2.2rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
+  .subtitle { font-size: 1.2rem; color: #334155; margin-bottom: 28px; min-height: 1.6em; }
+  .hint-box {
+    width: min(560px, 95%);
+    margin: 0 auto 24px;
+    padding: 22px 18px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #eff6ff, #ecfeff);
+    border: 3px solid #93c5fd;
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: 8px;
+    color: #0f172a;
+    text-transform: uppercase;
+  }
+  .input-box {
+    width: min(520px, 95%);
+    font-size: 2rem;
+    padding: 18px 20px;
+    border-radius: 18px;
+    border: 3px solid #93c5fd;
+    outline: none;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .input-box:focus { border-color: #2563eb; box-shadow: 0 0 0 6px rgba(37,99,235,0.12); }
+  .btn-row { display: flex; justify-content: center; gap: 14px; margin-top: 22px; flex-wrap: wrap; }
+  button.action { border: none; border-radius: 16px; padding: 14px 24px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: transform 0.12s ease, opacity 0.12s ease; }
+  button.action:hover { transform: translateY(-1px); }
+  .check-btn { background: #2563eb; color: white; }
+  .shuffle-btn { background: #10b981; color: white; }
+  .msg { margin-top: 22px; min-height: 2em; font-size: 1.5rem; font-weight: 800; }
+  .correct { color: #15803d; }
+  .wrong { color: #dc2626; }
+  .answer { margin-top: 10px; font-size: 1.2rem; color: #334155; min-height: 1.6em; }
+  .finish { display: none; text-align: center; padding: 30px 10px 10px; }
+  .finish h2 { font-size: 2.4rem; color: #0f172a; margin: 0 0 12px; }
+  .finish p { font-size: 1.3rem; color: #334155; margin-bottom: 24px; }
+  .restart-btn { background: linear-gradient(135deg, #2563eb, #10b981); color: white; border: none; border-radius: 18px; padding: 16px 28px; font-size: 1.2rem; font-weight: 800; cursor: pointer; }
+  @media (max-width: 768px) {
+    .card { padding: 26px 18px; }
+    .title { font-size: 1.8rem; }
+    .subtitle { font-size: 1.05rem; }
+    .hint-box { font-size: 2.25rem; letter-spacing: 5px; padding: 18px 14px; }
+    .input-box { font-size: 1.6rem; padding: 16px; }
+    .msg { font-size: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="quizCard">
+      <div class="topbar"><div class="count" id="countText">1 / 16</div></div>
+      <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="title">철자 배열 완성하기</div>
+      <div class="subtitle">힌트를 보고 알맞은 단어를 완성하세요.</div>
+      <div class="hint-box" id="hintBox">A M Z E</div>
+      <div>
+        <input type="text" id="answerInput" class="input-box" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="여기에 입력" />
+      </div>
+      <div class="btn-row">
+        <button class="action check-btn" id="checkBtn">정답 확인</button>
+        <button class="action shuffle-btn" id="reshuffleBtn">다시 섞기</button>
+      </div>
+      <div class="msg" id="message"></div>
+      <div class="answer" id="answerHint"></div>
+      <div class="finish" id="finishBox">
+        <h2>수고하셨습니다!</h2>
+        <p>모든 단어를 완성했어요.</p>
+        <button class="restart-btn" id="restartBtn">다시 시작</button>
+      </div>
+    </div>
+  </div>
+<script>
+  const words = [
+    "maze", "name", "cake", "lake",
+    "nine", "lime", "kite", "five",
+    "cone", "nose", "rose", "home",
+    "cute", "cube", "tube", "June"
+  ];
+
+  const vowelGroups = ["a_e", "i_e", "o_e", "u_e"];
+  let quizWords = [...words];
+  let currentIndex = 0;
+  let wrongCount = 0;
+  let locked = false;
+
+  const countText = document.getElementById('countText');
+  const progressBar = document.getElementById('progressBar');
+  const answerInput = document.getElementById('answerInput');
+  const message = document.getElementById('message');
+  const answerHint = document.getElementById('answerHint');
+  const finishBox = document.getElementById('finishBox');
+  const checkBtn = document.getElementById('checkBtn');
+  const reshuffleBtn = document.getElementById('reshuffleBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const hintBox = document.getElementById('hintBox');
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function updateProgress() {
+    countText.textContent = `${currentIndex + 1} / ${quizWords.length}`;
+    progressBar.style.width = `${(currentIndex / quizWords.length) * 100}%`;
+  }
+
+  function getCurrentWord() { return quizWords[currentIndex]; }
+
+  function makeHint(word) {
+    const lower = word.toLowerCase();
+    const chars = lower.split('');
+    const firstVowelIndex = chars.findIndex(ch => ['a','e','i','o','u'].includes(ch));
+    if (firstVowelIndex === -1) return word.toUpperCase().split('').join(' ');
+
+    // silent e 단어는 첫 모음과 끝 e를 먼저 보여 주고, 가운데 자음은 불규칙하게 섞음
+    if (lower.endsWith('e') && firstVowelIndex !== lower.length - 1) {
+      const firstVowel = chars[firstVowelIndex];
+      const silentE = chars[chars.length - 1];
+      const rest = chars.filter((_, idx) => idx !== firstVowelIndex && idx !== chars.length - 1);
+      shuffle(rest);
+      return [firstVowel, silentE, ...rest].join(' ').toUpperCase();
+    }
+
+    const vowel = chars[firstVowelIndex];
+    const rest = chars.filter((_, idx) => idx !== firstVowelIndex);
+    shuffle(rest);
+    return [vowel, ...rest].join(' ').toUpperCase();
+  }
+
+  function clearFeedback() {
+    message.textContent = "";
+    message.className = "msg";
+    answerHint.textContent = "";
+  }
+
+  function loadQuestion() {
+    if (currentIndex >= quizWords.length) { finishQuiz(); return; }
+    updateProgress();
+    clearFeedback();
+    wrongCount = 0;
+    locked = false;
+    answerInput.value = "";
+    answerInput.disabled = false;
+    answerInput.focus();
+    hintBox.textContent = makeHint(getCurrentWord());
+  }
+
+  function checkAnswer() {
+    if (locked) return;
+    const user = answerInput.value.trim().toLowerCase();
+    const correct = getCurrentWord().toLowerCase();
+
+    if (!user) {
+      message.textContent = "철자를 입력하세요.";
+      message.className = "msg wrong";
+      return;
+    }
+
+    if (user === correct) {
+      locked = true;
+      message.textContent = "정답입니다!";
+      message.className = "msg correct";
+      answerHint.textContent = "";
+      answerInput.disabled = true;
+      progressBar.style.width = `${((currentIndex + 1) / quizWords.length) * 100}%`;
+      setTimeout(() => { currentIndex++; loadQuestion(); }, 700);
+    } else {
+      wrongCount++;
+      message.textContent = "다시 입력해 보세요.";
+      message.className = "msg wrong";
+      answerHint.textContent = wrongCount >= 3 ? `정답: ${getCurrentWord()}` : "";
+      answerInput.select();
+    }
+  }
+
+  function reshuffleHint() {
+    if (locked) return;
+    hintBox.textContent = makeHint(getCurrentWord());
+    answerInput.focus();
+  }
+
+  function finishQuiz() {
+    countText.textContent = `${quizWords.length} / ${quizWords.length}`;
+    progressBar.style.width = "100%";
+    hintBox.style.display = "none";
+    checkBtn.style.display = "none";
+    reshuffleBtn.style.display = "none";
+    answerInput.style.display = "none";
+    message.style.display = "none";
+    answerHint.style.display = "none";
+    finishBox.style.display = "block";
+  }
+
+  function restartQuiz() {
+    quizWords = [...words];
+    shuffle(quizWords);
+    currentIndex = 0;
+    hintBox.style.display = "block";
+    checkBtn.style.display = "inline-block";
+    reshuffleBtn.style.display = "inline-block";
+    answerInput.style.display = "inline-block";
+    message.style.display = "block";
+    answerHint.style.display = "block";
+    finishBox.style.display = "none";
+    loadQuestion();
+  }
+
+  checkBtn.addEventListener('click', checkAnswer);
+  reshuffleBtn.addEventListener('click', reshuffleHint);
+  answerInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') checkAnswer(); });
+  answerInput.addEventListener('paste', (e) => e.preventDefault());
+  answerInput.addEventListener('copy', (e) => e.preventDefault());
+  answerInput.addEventListener('cut', (e) => e.preventDefault());
+  answerInput.addEventListener('drop', (e) => e.preventDefault());
+  restartBtn.addEventListener('click', restartQuiz);
+
+  shuffle(quizWords);
+  loadQuestion();
+</script>
+</body>
+</html>

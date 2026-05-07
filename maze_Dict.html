@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Long Vowel 듣고 타이핑</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #89f7fe, #66a6ff);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+  }
+
+  .wrap {
+    width: 100%;
+    max-width: 900px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.96);
+    border-radius: 28px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.18);
+    padding: 34px 28px;
+    text-align: center;
+  }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .count {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e3a8a;
+  }
+
+  .progress-wrap {
+    width: 100%;
+    height: 16px;
+    background: #dbeafe;
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 10px 0 28px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #2563eb, #10b981);
+    transition: width 0.35s ease;
+  }
+
+  .title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+    color: #334155;
+    margin-bottom: 28px;
+    min-height: 1.6em;
+  }
+
+  .speaker {
+    width: 130px;
+    height: 130px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #3b82f6, #10b981);
+    color: white;
+    font-size: 3rem;
+    cursor: pointer;
+    box-shadow: 0 12px 25px rgba(37, 99, 235, 0.28);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .speaker:hover { transform: scale(1.03); }
+  .speaker:active { transform: scale(0.97); }
+
+  .input-box {
+    width: min(520px, 95%);
+    font-size: 2rem;
+    padding: 18px 20px;
+    border-radius: 18px;
+    border: 3px solid #93c5fd;
+    outline: none;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .input-box:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 6px rgba(37,99,235,0.12);
+  }
+
+  .btn-row {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+
+  button.action {
+    border: none;
+    border-radius: 16px;
+    padding: 14px 24px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.12s ease, opacity 0.12s ease;
+  }
+
+  button.action:hover { transform: translateY(-1px); }
+
+  .check-btn {
+    background: #2563eb;
+    color: white;
+  }
+
+  .msg {
+    margin-top: 22px;
+    min-height: 2em;
+    font-size: 1.5rem;
+    font-weight: 800;
+  }
+
+  .correct { color: #15803d; }
+  .wrong { color: #dc2626; }
+
+  .answer {
+    margin-top: 10px;
+    font-size: 1.2rem;
+    color: #334155;
+    min-height: 1.6em;
+  }
+
+  .finish {
+    display: none;
+    text-align: center;
+    padding: 30px 10px 10px;
+  }
+
+  .finish h2 {
+    font-size: 2.4rem;
+    color: #0f172a;
+    margin: 0 0 12px;
+  }
+
+  .finish p {
+    font-size: 1.3rem;
+    color: #334155;
+    margin-bottom: 24px;
+  }
+
+  .restart-btn {
+    background: linear-gradient(135deg, #2563eb, #10b981);
+    color: white;
+    border: none;
+    border-radius: 18px;
+    padding: 16px 28px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
+    .card { padding: 26px 18px; }
+    .title { font-size: 1.8rem; }
+    .subtitle { font-size: 1.05rem; }
+    .speaker {
+      width: 110px;
+      height: 110px;
+      font-size: 2.6rem;
+    }
+    .input-box {
+      font-size: 1.6rem;
+      padding: 16px;
+    }
+    .msg { font-size: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card" id="quizCard">
+      <div class="topbar">
+        <div class="count" id="countText">1 / 16</div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <div class="title">듣고 타이핑</div>
+      <div class="subtitle" id="subtitle">버튼을 눌러 단어를 듣고 철자를 입력하세요.</div>
+
+      <button class="speaker" id="speakerBtn" title="다시 듣기">🔊</button>
+
+      <div>
+        <input
+          type="text"
+          id="answerInput"
+          class="input-box"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+          placeholder="여기에 입력"
+        />
+      </div>
+
+      <div class="btn-row">
+        <button class="action check-btn" id="checkBtn">정답 확인</button>
+      </div>
+
+      <div class="msg" id="message"></div>
+      <div class="answer" id="answerHint"></div>
+
+      <div class="finish" id="finishBox">
+        <h2>수고하셨습니다!</h2>
+        <p>모든 단어를 완성했어요.</p>
+        <button class="restart-btn" id="restartBtn">다시 시작</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const words = [
+    "maze", "name", "cake", "lake",
+    "nine", "lime", "kite", "five",
+    "cone", "nose", "rose", "home",
+    "cute", "cube", "tube", "June"
+  ];
+
+  let quizWords = [...words];
+  let currentIndex = 0;
+  let wrongCount = 0;
+  let locked = false;
+  let selectedVoice = null;
+
+  const countText = document.getElementById('countText');
+  const progressBar = document.getElementById('progressBar');
+  const subtitle = document.getElementById('subtitle');
+  const answerInput = document.getElementById('answerInput');
+  const message = document.getElementById('message');
+  const answerHint = document.getElementById('answerHint');
+  const finishBox = document.getElementById('finishBox');
+  const speakerBtn = document.getElementById('speakerBtn');
+  const checkBtn = document.getElementById('checkBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  function updateProgress() {
+    countText.textContent = `${currentIndex + 1} / ${quizWords.length}`;
+    const percent = (currentIndex / quizWords.length) * 100;
+    progressBar.style.width = `${percent}%`;
+  }
+
+  function getCurrentWord() {
+    return quizWords[currentIndex];
+  }
+
+  function loadVoices() {
+    const voices = speechSynthesis.getVoices();
+    selectedVoice =
+      voices.find(v => v.lang === "en-US" && /Google|Microsoft|Samantha|Jenny|Aria|Guy|David/i.test(v.name)) ||
+      voices.find(v => v.lang && v.lang.toLowerCase() === "en-us") ||
+      voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en")) ||
+      null;
+  }
+
+  function speakWord(word) {
+    speechSynthesis.cancel();
+    if (!selectedVoice) loadVoices();
+
+    const u1 = new SpeechSynthesisUtterance("\u200B, " + word);
+    u1.lang = "en-US";
+    u1.rate = 0.75;
+    if (selectedVoice) u1.voice = selectedVoice;
+
+    const u2 = new SpeechSynthesisUtterance("\u200B, " + word);
+    u2.lang = "en-US";
+    u2.rate = 0.65;
+    if (selectedVoice) u2.voice = selectedVoice;
+
+    speechSynthesis.speak(u1);
+    u1.onend = () => {
+      setTimeout(() => {
+        speechSynthesis.speak(u2);
+      }, 250);
+    };
+  }
+
+  function clearFeedback() {
+    message.textContent = "";
+    message.className = "msg";
+    answerHint.textContent = "";
+  }
+
+  function loadQuestion() {
+    if (currentIndex >= quizWords.length) {
+      finishQuiz();
+      return;
+    }
+
+    updateProgress();
+    clearFeedback();
+    wrongCount = 0;
+    locked = false;
+    answerInput.value = "";
+    answerInput.disabled = false;
+    answerInput.focus();
+
+    setTimeout(() => {
+      speakWord(getCurrentWord());
+    }, 250);
+  }
+
+  function checkAnswer() {
+    if (locked) return;
+
+    const user = answerInput.value.trim().toLowerCase();
+    const correct = getCurrentWord().toLowerCase();
+
+    if (!user) {
+      message.textContent = "철자를 입력하세요.";
+      message.className = "msg wrong";
+      return;
+    }
+
+    if (user === correct) {
+      locked = true;
+      message.textContent = "정답입니다!";
+      message.className = "msg correct";
+      answerHint.textContent = "";
+
+      answerInput.disabled = true;
+      progressBar.style.width = `${((currentIndex + 1) / quizWords.length) * 100}%`;
+
+      setTimeout(() => {
+        currentIndex++;
+        loadQuestion();
+      }, 800);
+    } else {
+      wrongCount++;
+      message.textContent = "다시 입력해 보세요.";
+      message.className = "msg wrong";
+
+      if (wrongCount >= 3) {
+        answerHint.textContent = `정답: ${getCurrentWord()}`;
+      } else {
+        answerHint.textContent = "";
+      }
+
+      answerInput.select();
+      speakWord(getCurrentWord());
+    }
+  }
+
+  function finishQuiz() {
+    countText.textContent = `${quizWords.length} / ${quizWords.length}`;
+    progressBar.style.width = "100%";
+    subtitle.textContent = "";
+    speakerBtn.style.display = "none";
+    checkBtn.style.display = "none";
+    answerInput.style.display = "none";
+    message.style.display = "none";
+    answerHint.style.display = "none";
+    finishBox.style.display = "block";
+    speechSynthesis.cancel();
+  }
+
+  function restartQuiz() {
+    quizWords = [...words];
+    shuffle(quizWords);
+    currentIndex = 0;
+
+    subtitle.textContent = "버튼을 눌러 단어를 듣고 철자를 입력하세요.";
+    speakerBtn.style.display = "inline-block";
+    checkBtn.style.display = "inline-block";
+    answerInput.style.display = "inline-block";
+    message.style.display = "block";
+    answerHint.style.display = "block";
+    finishBox.style.display = "none";
+
+    loadQuestion();
+  }
+
+  speakerBtn.addEventListener('click', () => speakWord(getCurrentWord()));
+  checkBtn.addEventListener('click', checkAnswer);
+
+  answerInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') checkAnswer();
+  });
+
+  answerInput.addEventListener('paste', (e) => e.preventDefault());
+  answerInput.addEventListener('copy', (e) => e.preventDefault());
+  answerInput.addEventListener('cut', (e) => e.preventDefault());
+  answerInput.addEventListener('drop', (e) => e.preventDefault());
+
+  restartBtn.addEventListener('click', restartQuiz);
+
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+  loadVoices();
+
+  shuffle(quizWords);
+  loadQuestion();
+</script>
+</body>
+</html>
