@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Consonant + l 문장읽기카드</title>
+
+<style>
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:linear-gradient(135deg,#89f7fe,#66a6ff);
+  padding:24px;
+}
+
+.wrap{
+  max-width:1100px;
+  margin:auto;
+}
+
+.header{
+  background:white;
+  padding:25px;
+  border-radius:25px;
+  text-align:center;
+  margin-bottom:20px;
+  box-shadow:0 12px 28px rgba(0,0,0,0.12);
+}
+
+.title{
+  font-size:2.2rem;
+  font-weight:bold;
+  color:#0f172a;
+}
+
+.subtitle{
+  margin-top:8px;
+  font-size:1.05rem;
+  color:#475569;
+}
+
+.controls{
+  margin-top:15px;
+}
+
+button{
+  padding:10px 18px;
+  margin:5px;
+  border-radius:12px;
+  border:none;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  font-size:1rem;
+}
+
+.stop{
+  background:#2563eb;
+}
+
+.all{
+  background:#10b981;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:15px;
+}
+
+.card{
+  background:white;
+  padding:20px;
+  border-radius:18px;
+  cursor:pointer;
+  box-shadow:0 8px 18px rgba(0,0,0,0.10);
+  transition:transform 0.12s ease,
+             box-shadow 0.12s ease;
+}
+
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 24px rgba(0,0,0,0.14);
+}
+
+.num{
+  color:#2563eb;
+  font-weight:bold;
+  margin-bottom:6px;
+}
+
+.text{
+  font-size:1.6rem;
+  font-weight:bold;
+  line-height:1.45;
+  color:#0f172a;
+}
+
+.hint{
+  font-size:0.9rem;
+  color:#666;
+  margin-top:8px;
+}
+
+@media (max-width:700px){
+
+  body{
+    padding:16px;
+  }
+
+  .title{
+    font-size:1.8rem;
+  }
+
+  .text{
+    font-size:1.35rem;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="header">
+
+<div class="title">
+Consonant + l 문장읽기카드
+</div>
+
+<div class="subtitle">
+black, clap, flip 같은 단어를 문장 속에서 읽어 보세요.
+</div>
+
+<div class="controls">
+
+<button class="stop"
+onclick="stopReading()">
+멈추기
+</button>
+
+<button class="all"
+onclick="readAll()">
+전체 읽기
+</button>
+
+</div>
+
+</div>
+
+<div class="grid"
+id="grid">
+</div>
+
+</div>
+
+<script>
+
+const sentences = [
+
+/* 리듬 */
+
+"Black block, clap clip.",
+"Flag fly, plum plus.",
+"Flip, flap, slap, slip.",
+"A black flag and a block.",
+"A clap and a flip.",
+
+/* 쉬운 문장 */
+
+"The black block is big.",
+"I clap my hands.",
+"The flag can fly.",
+"A plum is on the plate.",
+"We flip the card.",
+
+/* 대비 */
+
+"A clap is not a slap.",
+"A flip is not a slip.",
+"A plum is not black.",
+"The block is not flat.",
+"A fly is not a flag.",
+
+/* 연결 */
+
+"I clap and then flip.",
+"The black flag can fly.",
+"A plum is by the block.",
+"We slip on the wet floor.",
+"The kids flap the flag.",
+
+/* 스토리 */
+
+"A black flag is by the block.",
+"The kids clap and flip cards.",
+"A plum falls from the box.",
+"We slip but do not cry.",
+"The fly lands on the black block."
+
+];
+
+let voice;
+
+function loadVoices(){
+
+  const v =
+    speechSynthesis.getVoices();
+
+  voice =
+
+    v.find(x =>
+      x.lang === "en-US" &&
+      /Google|Microsoft|Samantha|Jenny|Aria|Guy|David/i.test(x.name)
+    )
+
+    ||
+
+    v.find(x =>
+      x.lang === "en-US"
+    )
+
+    ||
+
+    v.find(x =>
+      x.lang &&
+      x.lang.startsWith("en")
+    )
+
+    ||
+
+    v[0];
+}
+
+function speak(text){
+
+  speechSynthesis.cancel();
+
+  const u =
+    new SpeechSynthesisUtterance(
+      "\u200B, " + text
+    );
+
+  u.lang = "en-US";
+
+  u.rate = 0.88;
+
+  u.pitch = 1;
+
+  if(voice)
+    u.voice = voice;
+
+  speechSynthesis.speak(u);
+}
+
+function build(){
+
+  const grid =
+    document.getElementById("grid");
+
+  sentences.forEach((s,i)=>{
+
+    const card =
+      document.createElement("div");
+
+    card.className = "card";
+
+    card.innerHTML = `
+
+      <div class="num">
+        ${i+1}.
+      </div>
+
+      <div class="text">
+        ${s}
+      </div>
+
+      <div class="hint">
+        클릭해서 듣기
+      </div>
+
+    `;
+
+    card.onclick = ()=>speak(s);
+
+    grid.appendChild(card);
+
+  });
+}
+
+function stopReading(){
+
+  speechSynthesis.cancel();
+}
+
+function readAll(){
+
+  let i = 0;
+
+  function next(){
+
+    if(i >= sentences.length)
+      return;
+
+    const u =
+      new SpeechSynthesisUtterance(
+        "\u200B, " + sentences[i]
+      );
+
+    u.lang = "en-US";
+
+    u.rate = 0.88;
+
+    u.pitch = 1;
+
+    if(voice)
+      u.voice = voice;
+
+    u.onend = ()=>{
+
+      i++;
+
+      setTimeout(next,400);
+    };
+
+    speechSynthesis.speak(u);
+  }
+
+  speechSynthesis.cancel();
+
+  next();
+}
+
+window.speechSynthesis.onvoiceschanged =
+  loadVoices;
+
+loadVoices();
+
+build();
+
+</script>
+
+</body>
+</html>
