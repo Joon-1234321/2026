@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>듣고 타이핑 - Consonant Blends</title>
+<style>
+:root{  --bg1:#dbeafe;  --bg2:#bfdbfe;  --bg3:#86efac;  --card:#ffffffee;  --ink:#0f172a;  --blue:#2563eb;  --green:#16a34a;  --red:#dc2626;}
+*{  box-sizing:border-box;}
+body{  margin:0;  min-height:100vh;  font-family:Arial,sans-serif;  background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));  padding:20px;}
+.wrap{  max-width:1000px;  margin:auto;}
+.screen{  display:none;}
+.screen.active{  display:block;}
+.panel{  background:var(--card);  border-radius:28px;  padding:28px;  box-shadow:0 18px 40px rgba(0,0,0,0.15);}
+.home{  min-height:82vh;  display:flex;  align-items:center;  justify-content:center;  text-align:center;}
+.title{  font-size:clamp(2.3rem,5vw,4rem);  font-weight:900;  color:#1d4ed8;}
+.subtitle{  margin-top:14px;  font-size:1.2rem;  line-height:1.7;  color:#334155;  font-weight:700;}
+.bubbles{  display:flex;  justify-content:center;  flex-wrap:wrap;  gap:12px;  margin:24px 0;}
+.bubble{  background:white;  border-radius:999px;  padding:12px 18px;  font-weight:800;  box-shadow:0 6px 16px rgba(0,0,0,0.08);}
+button{  border:none;  border-radius:18px;  padding:16px 24px;  font-size:1.1rem;  font-weight:800;  cursor:pointer;  transition:transform .12s ease;}
+button:hover{  transform:translateY(-2px);}
+.primary{  background:linear-gradient(135deg,#2563eb,#38bdf8);  color:white;}
+.green{  background:linear-gradient(135deg,#16a34a,#4ade80);  color:white;}
+.ghost{  background:white;}
+.topbar{  display:grid;  grid-template-columns:1fr 1fr 1fr;  gap:12px;  margin-bottom:16px;}
+.stat{  background:white;  border-radius:18px;  padding:16px;  text-align:center;  font-size:1.15rem;  font-weight:900;  box-shadow:0 8px 18px rgba(0,0,0,0.08);}
+.progress-wrap{  width:100%;  height:22px;  background:#dbeafe;  border-radius:999px;  overflow:hidden;  margin-bottom:20px;}
+.progress{  height:100%;  width:0%;  background:linear-gradient(90deg,#22c55e,#38bdf8,#8b5cf6);  transition:width .3s ease;}
+.game-card{  background:white;  border-radius:30px;  padding:30px;  min-height:520px;  text-align:center;  box-shadow:0 14px 32px rgba(0,0,0,0.10);}
+.badge{  display:inline-block;  background:#eff6ff;  border:3px solid #bfdbfe;  color:#1d4ed8;  padding:10px 18px;  border-radius:999px;  font-weight:900;  margin-bottom:16px;}
+.icon{  font-size:5rem;  margin:10px 0;}
+.guide{  font-size:1.35rem;  font-weight:800;  margin-bottom:24px;}
+.input{  width:min(560px,100%);  font-size:clamp(2rem,5vw,3.5rem);  text-align:center;  padding:18px;  border-radius:24px;  border:4px solid #93c5fd;  outline:none;  font-weight:900;  letter-spacing:2px;}
+.input:focus{  border-color:#2563eb;  box-shadow:0 0 0 5px rgba(37,99,235,0.12);}
+.actions{  display:flex;  justify-content:center;  gap:12px;  flex-wrap:wrap;  margin-top:22px;}
+.feedback{  margin-top:22px;  min-height:48px;  font-size:1.4rem;  font-weight:900;}
+.good{  color:var(--green);}
+.bad{  color:var(--red);}
+.answer{  margin-top:10px;  font-size:1.25rem;  color:#ea580c;  font-weight:800;  min-height:1.5em;}
+.result{  text-align:center;  padding:36px 20px;}
+.result-score{  font-size:4rem;  font-weight:900;  color:#1d4ed8;  margin:12px 0;}
+.words{  display:flex;  justify-content:center;  flex-wrap:wrap;  gap:10px;  margin-top:24px;}
+.word{  background:white;  padding:10px 16px;  border-radius:999px;  font-weight:800;  box-shadow:0 6px 14px rgba(0,0,0,0.08);}
+@media(max-width:700px){
+  body{    padding:14px;  }
+  .panel,  .game-card{    padding:20px;  }
+  .topbar{    grid-template-columns:1fr;  }
+  .icon{    font-size:4rem;  }}
+</style></head>
+<body>
+<div class="wrap">
+<section class="screen active" id="home">
+<div class="home">
+<div class="panel">
+<div class="title">🎧 듣고 타이핑</div>
+<div class="subtitle">Consonant Blends 단어를 듣고<br>정확한 철자를 입력해 보세요.</div>
+<div class="bubbles">
+<div class="bubble">🔊 자연 속도 2번 듣기</div><div class="bubble">⌨️ 스펠링 입력</div><div class="bubble">⭐ 정답 효과</div><div class="bubble">🏆 점수 쌓기</div>
+</div>
+<button class="primary" onclick="startGame()">시작하기</button>
+</div>
+</div>
+</section>
+<section class="screen" id="game">
+<div class="topbar">
+<div class="stat" id="roundText">1 / 12</div>
+<div class="stat" id="tryText">시도 0 / 3</div>
+<div class="stat" id="scoreText">점수 0</div>
+</div>
+<div class="progress-wrap"><div class="progress" id="progress"></div></div>
+<div class="game-card">
+<div class="badge">Listen and Type</div>
+<div class="icon">🎧</div>
+<div class="guide">잘 듣고 단어를 입력하세요.</div>
+<input type="text" id="answer" class="input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="type here"/>
+<div class="actions">
+<button class="primary" onclick="speakCurrent()">🔊 다시 듣기</button>
+<button class="green" onclick="checkAnswer()">✅ 확인</button>
+</div>
+<div class="feedback" id="feedback"></div>
+<div class="answer" id="answerHint"></div>
+</div>
+</section>
+<section class="screen" id="result">
+<div class="panel result">
+<div class="title">🎉 수고했어요!</div>
+<div class="result-score" id="finalScore">0점</div>
+<div class="subtitle" id="resultMsg">정말 잘했어요.</div>
+<div class="words" id="wordList"></div>
+<div class="actions" style="margin-top:30px;">
+<button class="green" onclick="startGame()">다시 하기</button>
+<button class="ghost" onclick="goHome()">처음으로</button>
+</div>
+</div>
+</section>
+</div>
+<script>
+// 요청하신 12개 단어 세트로 수정 완료
+const wordSet = [
+  "brick", "brown", "crack", "crown", "truck", "drum", 
+  "track", "dress", "glass", "glue", "green", "grapes"
+];
+let words = [];let current = 0;let currentWord = "";let tries = 0;let score = 0;let revealed = false;
+const home = document.getElementById("home");const game = document.getElementById("game");const result = document.getElementById("result");
+const roundText = document.getElementById("roundText");const tryText = document.getElementById("tryText");const scoreText = document.getElementById("scoreText");const progress = document.getElementById("progress");
+const answer = document.getElementById("answer");const feedback = document.getElementById("feedback");const answerHint = document.getElementById("answerHint");
+const finalScore = document.getElementById("finalScore");const resultMsg = document.getElementById("resultMsg");const wordList = document.getElementById("wordList");
+function shuffle(arr){
+  const copy = [...arr];
+  for(let i=copy.length-1;i>0;i--){
+    const j =      Math.floor(Math.random()*(i+1));
+    [copy[i],copy[j]] =      [copy[j],copy[i]];  }
+  return copy;}
+function show(name){
+  home.classList.remove("active");  game.classList.remove("active");  result.classList.remove("active");
+  if(name==="home")    home.classList.add("active");
+  if(name==="game")    game.classList.add("active");
+  if(name==="result")    result.classList.add("active");}
+function startGame(){
+  speechSynthesis.cancel();
+  words = shuffle(wordSet);
+  current = 0;  score = 0;
+  show("game");
+  nextQuestion();}
+function goHome(){
+  speechSynthesis.cancel();
+  show("home");}
+function nextQuestion(){
+  if(current >= words.length){
+    finishGame();    return;  }
+  currentWord = words[current];
+  tries = 0;  revealed = false;
+  answer.value = "";
+  feedback.textContent = "";  feedback.className = "feedback";
+  answerHint.textContent = "";
+  updateUI();
+  setTimeout(()=>{
+    answer.focus();
+    speakCurrent();
+  },400);}
+function updateUI(){
+  roundText.textContent =    `${current+1} / ${words.length}`;
+  tryText.textContent =    `시도 ${tries} / 3`;
+  scoreText.textContent =    `점수 ${score}`;
+  progress.style.width =    `${(current / words.length) * 100}%`;}
+function checkAnswer(){
+  const user =    answer.value      .trim()      .toLowerCase();
+  if(!user){
+    feedback.textContent =      "단어를 입력하세요.";
+    feedback.className =      "feedback bad";
+    return;  }
+  if(user === currentWord){
+    const point =      revealed      ? 5      : Math.max(10 - tries * 2, 6);
+    score += point;
+    feedback.textContent =      `정답! +${point}점`;
+    feedback.className =      "feedback good";
+    updateUI();
+    setTimeout(()=>{
+      current++;
+      nextQuestion();
+    },850);
+    return;  }
+  tries++;
+  updateUI();
+  if(tries >= 3){
+    revealed = true;
+    feedback.textContent =      "정답을 보고 다시 입력하세요.";
+    feedback.className =      "feedback bad";
+    answerHint.textContent =      `정답: ${currentWord}`;
+  } else {
+    feedback.textContent =      "다시 들어 보고 입력해 보세요.";
+    feedback.className =      "feedback bad";  }
+  speakCurrent();
+  answer.select();}
+function finishGame(){
+  progress.style.width = "100%";
+  show("result");
+  finalScore.textContent =    `${score}점`;
+  if(score >= wordSet.length * 9){
+    resultMsg.textContent =      "완벽해요! 파닉스 마스터!";
+  } else if(score >= wordSet.length * 7){
+    resultMsg.textContent =      "아주 잘했어요!";
+  } else {
+    resultMsg.textContent =      "끝까지 해낸 것이 훌륭해요!";  }
+  wordList.innerHTML = "";
+  wordSet.forEach(w=>{
+    const div =      document.createElement("div");
+    div.className = "word";
+    div.textContent = w;
+    wordList.appendChild(div);  });}
+function getVoice(){
+  const voices =    speechSynthesis.getVoices();
+  return (    voices.find(v =>      /en-US/i.test(v.lang))    ||    voices.find(v =>      /^en/i.test(v.lang))    ||    voices[0]  );}
+function speak(text,repeat=2){
+  speechSynthesis.cancel();
+  const voice = getVoice();
+  let delay = 0;
+  for(let i=0;i<repeat;i++){
+    setTimeout(()=>{
+      const u =        new SpeechSynthesisUtterance(          "\u200B, " + text        );
+      u.lang = "en-US";
+      if(voice)        u.voice = voice;
+      u.rate = 0.88;      u.pitch = 1;
+      speechSynthesis.speak(u);
+    },delay);
+    delay += 1050;  }}
+function speakCurrent(){
+  speak(currentWord,2);}
+answer.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){
+    checkAnswer();  }});
+answer.addEventListener("paste",  e=>e.preventDefault());
+answer.addEventListener("copy",  e=>e.preventDefault());
+answer.addEventListener("cut",  e=>e.preventDefault());
+window.speechSynthesis.onvoiceschanged =  ()=>{};
+</script>
+</body></html>
