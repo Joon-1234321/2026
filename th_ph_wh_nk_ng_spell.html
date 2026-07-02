@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>철자배열 완성하기 - TH PH WH NK NG</title>
+<style>
+:root{--blue:#2563eb;--green:#10b981;--red:#dc2626;}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Arial,'Noto Sans KR',sans-serif;
+  background:linear-gradient(135deg,#89f7fe,#66a6ff);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+.wrap{width:100%;max-width:920px;}
+.card{
+  background:white;
+  border-radius:30px;
+  padding:34px 28px;
+  text-align:center;
+  box-shadow:0 18px 40px rgba(0,0,0,0.16);
+}
+.screen{display:none;}
+.screen.active{display:block;}
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.count{
+  font-size:1.2rem;
+  font-weight:800;
+  color:#1d4ed8;
+}
+.progress-wrap{
+  width:100%;
+  height:18px;
+  background:#dbeafe;
+  border-radius:999px;
+  overflow:hidden;
+  margin:18px 0 28px;
+}
+.progress{
+  width:0%;
+  height:100%;
+  background:linear-gradient(90deg,#2563eb,#10b981);
+  transition:width .3s ease;
+}
+.title{
+  font-size:2.3rem;
+  font-weight:900;
+  color:#0f172a;
+}
+.subtitle{
+  margin-top:10px;
+  font-size:1.15rem;
+  color:#475569;
+  line-height:1.6;
+}
+.hint{
+  margin:34px auto 24px;
+  width:min(620px,100%);
+  padding:26px 18px;
+  border-radius:24px;
+  background:linear-gradient(135deg,#eff6ff,#ecfeff);
+  border:4px solid #93c5fd;
+  font-size:3rem;
+  font-weight:900;
+  letter-spacing:8px;
+  color:#0f172a;
+  text-transform:uppercase;
+}
+.input{
+  width:min(520px,100%);
+  font-size:2.2rem;
+  padding:18px;
+  border-radius:22px;
+  border:4px solid #93c5fd;
+  outline:none;
+  text-align:center;
+  font-weight:900;
+  letter-spacing:2px;
+}
+.input:focus{
+  border-color:#2563eb;
+  box-shadow:0 0 0 6px rgba(37,99,235,0.12);
+}
+.buttons{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:14px;
+  margin-top:24px;
+}
+button{
+  border:none;
+  border-radius:18px;
+  padding:14px 24px;
+  font-size:1.08rem;
+  font-weight:800;
+  cursor:pointer;
+  color:white;
+  transition:transform .12s ease;
+}
+button:hover{transform:translateY(-2px);}
+.start-btn{
+  background:linear-gradient(135deg,#2563eb,#10b981);
+  font-size:1.3rem;
+  padding:18px 40px;
+  margin-top:28px;
+}
+.listen{background:#f59e0b;}
+.check{background:#2563eb;}
+.shuffle{background:#10b981;}
+.feedback{
+  margin-top:24px;
+  min-height:44px;
+  font-size:1.5rem;
+  font-weight:900;
+}
+.good{color:var(--green);}
+.bad{color:var(--red);}
+.answer{
+  margin-top:10px;
+  min-height:1.5em;
+  font-size:1.2rem;
+  color:#ea580c;
+  font-weight:800;
+}
+.finish{padding-top:20px;}
+.finish h2{
+  font-size:2.5rem;
+  color:#0f172a;
+}
+.finish p{
+  font-size:1.25rem;
+  color:#475569;
+}
+.wordList{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:24px;
+}
+.wordChip{
+  background:#eff6ff;
+  color:#1d4ed8;
+  padding:10px 16px;
+  border-radius:999px;
+  font-weight:900;
+}
+.restart{background:linear-gradient(135deg,#2563eb,#10b981);}
+@media(max-width:700px){
+  .card{padding:26px 18px;}
+  .title{font-size:1.9rem;}
+  .hint{font-size:2.2rem;letter-spacing:5px;}
+  .input{font-size:1.7rem;}
+  .feedback{font-size:1.25rem;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="card">
+
+  <section id="homeScreen" class="screen active">
+    <div class="title">🔀 철자배열 완성하기</div>
+    <div class="subtitle">TH · PH · WH · NK · NG 단어의<br>섞여 있는 알파벳을 조합하여 올바른 단어를 완성하세요.</div>
+    <button class="start-btn" onclick="startGame()">게임 시작하기</button>
+  </section>
+
+  <section id="gameScreen" class="screen">
+    <div class="top">
+      <div class="count" id="countText">1 / 16</div>
+    </div>
+    <div class="progress-wrap"><div class="progress" id="progress"></div></div>
+    <div class="title">철자배열 완성하기</div>
+    <div class="subtitle">섞인 알파벳을 보고 알맞은 단어를 입력하세요.</div>
+    <div class="hint" id="hintBox">-</div>
+    <input type="text" id="input" class="input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="단어 입력"/>
+    <div class="buttons">
+      <button class="listen" onclick="speakWord()">🔊 듣기</button>
+      <button class="check" onclick="checkAnswer()">✅ 정답 확인</button>
+      <button class="shuffle" onclick="reshuffle()">🔀 다시 섞기</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="answer" id="answer"></div>
+  </section>
+
+  <section id="finishScreen" class="screen">
+    <div class="finish">
+      <h2>🎉 완료!</h2>
+      <p>모든 단어의 철자를 끝까지 연습했습니다!</p>
+      <div class="wordList" id="wordList"></div>
+      <button class="restart" onclick="restartGame()">다시 시작</button>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<script>
+const wordSet = [
+  "this", "that", "father", "mother", "three", "bath", "think", "math",
+  "phone", "photo", "whale", "white", "pink", "drink", "king", "wing"
+];
+
+let words = [];
+let current = 0;
+let wrong = 0;
+let locked = false;
+
+const homeScreen = document.getElementById("homeScreen");
+const gameScreen = document.getElementById("gameScreen");
+const finishScreen = document.getElementById("finishScreen");
+const countText = document.getElementById("countText");
+const progress = document.getElementById("progress");
+const hintBox = document.getElementById("hintBox");
+const input = document.getElementById("input");
+const feedback = document.getElementById("feedback");
+const answer = document.getElementById("answer");
+const wordList = document.getElementById("wordList");
+
+function shuffle(arr){
+  const copy = [...arr];
+  for(let i=copy.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [copy[i],copy[j]] = [copy[j],copy[i]];
+  }
+  return copy;
+}
+
+function getCurrent(){
+  return words[current];
+}
+
+function buildHint(word){
+  const chars = word.toUpperCase().split("");
+  let shuffled = shuffle(chars).join(" ");
+  while(shuffled.toLowerCase().replace(/ /g, "") === word && word.length > 1) {
+    shuffled = shuffle(chars).join(" ");
+  }
+  return shuffled;
+}
+
+function startGame() {
+  homeScreen.classList.remove("active");
+  finishScreen.classList.remove("active");
+  gameScreen.classList.add("active");
+  words = shuffle(wordSet);
+  current = 0;
+  loadQuestion();
+}
+
+function loadQuestion(){
+  if(current >= words.length){
+    endGame();
+    return;
+  }
+  wrong = 0;
+  locked = false;
+  input.disabled = false;
+  input.value = "";
+  feedback.textContent = "";
+  feedback.className = "feedback";
+  answer.textContent = "";
+  countText.textContent = `${current+1} / ${words.length}`;
+  progress.style.width = `${(current / words.length)*100}%`;
+  hintBox.textContent = buildHint(getCurrent());
+  setTimeout(()=>{
+    input.focus();
+    speakWord();
+  },200);
+}
+
+function speakWord(){
+  speechSynthesis.cancel();
+  const voices = speechSynthesis.getVoices();
+  const voice = voices.find(v => /en-US/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang)) || voices[0];
+
+  const u1 = new SpeechSynthesisUtterance(getCurrent());
+  u1.lang = "en-US";
+  if(voice) u1.voice = voice;
+  u1.rate = 0.85;
+  speechSynthesis.speak(u1);
+
+  setTimeout(()=>{
+    if(!locked && gameScreen.classList.contains("active")){
+      const u2 = new SpeechSynthesisUtterance(getCurrent());
+      u2.lang = "en-US";
+      if(voice) u2.voice = voice;
+      u2.rate = 0.85;
+      speechSynthesis.speak(u2);
+    }
+  }, 1100);
+}
+
+function checkAnswer(){
+  if(locked) return;
+  const user = input.value.trim().toLowerCase();
+  const correct = getCurrent();
+  if(!user){
+    feedback.textContent = "단어를 입력하세요.";
+    feedback.className = "feedback bad";
+    return;
+  }
+  if(user === correct){
+    locked = true;
+    feedback.textContent = "정답입니다! 🎉";
+    feedback.className = "feedback good";
+    input.disabled = true;
+    progress.style.width = `${((current+1)/words.length)*100}%`;
+    setTimeout(()=>{
+      current++;
+      loadQuestion();
+    },1000);
+  } else {
+    wrong++;
+    feedback.textContent = "다시 입력해 보세요. ❌";
+    feedback.className = "feedback bad";
+    if(wrong >= 3){
+      answer.textContent = `정답: ${correct}`;
+    }
+    input.select();
+  }
+}
+
+function reshuffle(){
+  if(locked) return;
+  hintBox.textContent = buildHint(getCurrent());
+  input.focus();
+}
+
+function endGame(){
+  progress.style.width = "100%";
+  gameScreen.classList.remove("active");
+  finishScreen.classList.add("active");
+  wordList.innerHTML = "";
+  wordSet.forEach(w=>{
+    const div = document.createElement("div");
+    div.className = "wordChip";
+    div.textContent = w;
+    wordList.appendChild(div);
+  });
+}
+
+function restartGame(){
+  finishScreen.classList.remove("active");
+  startGame();
+}
+
+input.addEventListener("keydown",e=>{
+  if(e.key === "Enter"){
+    checkAnswer();
+  }
+});
+
+input.addEventListener("paste", e=>e.preventDefault());
+window.speechSynthesis.onvoiceschanged = ()=>{};
+</script>
+</body>
+</html>

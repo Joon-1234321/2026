@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TH PH WH NK NG 문장읽기카드</title>
+<style>
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:Arial,'Noto Sans KR',sans-serif;
+  background:linear-gradient(135deg,#89f7fe,#66a6ff);
+  padding:24px;
+}
+.wrap{
+  max-width:1100px;
+  margin:auto;
+}
+.header{
+  background:white;
+  padding:25px;
+  border-radius:25px;
+  text-align:center;
+  margin-bottom:20px;
+  box-shadow:0 12px 28px rgba(0,0,0,0.12);
+}
+.title{
+  font-size:2.2rem;
+  font-weight:bold;
+  color:#0f172a;
+}
+.subtitle{
+  margin-top:8px;
+  font-size:1.05rem;
+  color:#475569;
+  line-height:1.6;
+}
+.controls{
+  margin-top:15px;
+}
+button{
+  padding:10px 18px;
+  margin:5px;
+  border-radius:12px;
+  border:none;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  font-size:1rem;
+}
+.stop{background:#2563eb;}
+.all{background:#10b981;}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:15px;
+}
+.card{
+  background:white;
+  padding:20px;
+  border-radius:18px;
+  cursor:pointer;
+  box-shadow:0 8px 18px rgba(0,0,0,0.10);
+  transition:transform 0.12s ease, box-shadow 0.12s ease;
+}
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 24px rgba(0,0,0,0.14);
+}
+.num{
+  color:#2563eb;
+  font-weight:bold;
+  margin-bottom:6px;
+}
+.text{
+  font-size:1.55rem;
+  font-weight:bold;
+  line-height:1.45;
+  color:#0f172a;
+}
+.keyword{
+  display:inline-block;
+  margin-top:12px;
+  padding:6px 12px;
+  border-radius:999px;
+  background:#eff6ff;
+  color:#1d4ed8;
+  font-size:0.9rem;
+  font-weight:900;
+}
+.hint{
+  font-size:0.9rem;
+  color:#666;
+  margin-top:8px;
+}
+@media (max-width:700px){
+  body{padding:16px;}
+  .title{font-size:1.8rem;}
+  .text{font-size:1.35rem;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="title">TH · PH · WH · NK · NG 문장읽기카드</div>
+    <div class="subtitle">
+      this, father, three, phone, whale, pink, king 같은 단어들을<br>
+      문장 속에서 듣고 따라 읽어 보세요.
+    </div>
+    <div class="controls">
+      <button class="stop" onclick="stopReading()">멈추기</button>
+      <button class="all" onclick="readAll()">전체 읽기</button>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const sentences = [
+  {text:"This is my book.", word:"this"},
+  {text:"That is a big tree.", word:"that"},
+  {text:"My father is kind.", word:"father"},
+  {text:"My mother can cook well.", word:"mother"},
+  {text:"I see three cats.", word:"three"},
+  {text:"I take a warm bath.", word:"bath"},
+  {text:"I think about the answer.", word:"think"},
+  {text:"Math is fun for me.", word:"math"},
+
+  {text:"I use the phone to call my friend.", word:"phone"},
+  {text:"We took a family photo today.", word:"photo"},
+  {text:"A huge whale swims in the sea.", word:"whale"},
+  {text:"The rabbit is white and soft.", word:"white"},
+  {text:"My pencil case is pink.", word:"pink"},
+  {text:"Please drink some cold water.", word:"drink"},
+  {text:"The king sits on a golden chair.", word:"king"},
+  {text:"The bird hurt its wing.", word:"wing"},
+
+  {text:"This white whale is very big.", word:"this / white / whale"},
+  {text:"That pink phone is on the desk.", word:"that / pink / phone"},
+  {text:"My father can take a good photo.", word:"father / photo"},
+  {text:"My mother gives me a drink.", word:"mother / drink"},
+  {text:"Three birds have three wings.", word:"three / wing"},
+  {text:"I think the king is happy.", word:"think / king"},
+  {text:"Math is easy when I think slowly.", word:"math / think"},
+  {text:"The whale is not pink or white.", word:"whale / pink / white"},
+
+  {text:"This is a photo of my mother.", word:"this / photo / mother"},
+  {text:"That king has a white wing.", word:"that / king / white / wing"},
+  {text:"My father has a phone and a drink.", word:"father / phone / drink"},
+  {text:"Three children take a bath.", word:"three / bath"},
+  {text:"I think this math book is good.", word:"think / this / math"},
+  {text:"The pink whale is in the photo.", word:"pink / whale / photo"}
+];
+
+let voice;
+let allReadingTimeout = null;
+let currentUtterance = null;
+
+function loadVoices(){
+  const v = window.speechSynthesis.getVoices();
+  voice =
+    v.find(x => x.lang === "en-US" && /Google|Microsoft|Samantha|Jenny|Aria|Guy|David/i.test(x.name)) ||
+    v.find(x => x.lang === "en-US") ||
+    v.find(x => x.lang && x.lang.startsWith("en")) ||
+    v[0];
+}
+
+function speak(text){
+  stopReading();
+  currentUtterance = new SpeechSynthesisUtterance("\u200B, " + text);
+  currentUtterance.lang = "en-US";
+  currentUtterance.rate = 0.88;
+  currentUtterance.pitch = 1;
+  if(voice) currentUtterance.voice = voice;
+  speechSynthesis.speak(currentUtterance);
+}
+
+function build(){
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  sentences.forEach((s,i)=>{
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="num">${i+1}.</div>
+      <div class="text">${s.text}</div>
+      <div class="keyword">핵심 단어: ${s.word}</div>
+      <div class="hint">클릭해서 듣기</div>
+    `;
+    card.onclick = ()=>speak(s.text);
+    grid.appendChild(card);
+  });
+}
+
+function stopReading(){
+  speechSynthesis.cancel();
+  if(allReadingTimeout) {
+    clearTimeout(allReadingTimeout);
+    allReadingTimeout = null;
+  }
+}
+
+function readAll(){
+  stopReading();
+  let i = 0;
+  function next(){
+    if(i >= sentences.length) return;
+    currentUtterance = new SpeechSynthesisUtterance("\u200B, " + sentences[i].text);
+    currentUtterance.lang = "en-US";
+    currentUtterance.rate = 0.88;
+    currentUtterance.pitch = 1;
+    if(voice) currentUtterance.voice = voice;
+    currentUtterance.onend = ()=>{
+      i++;
+      allReadingTimeout = setTimeout(next,500);
+    };
+    currentUtterance.onerror = ()=>{
+      i++;
+      allReadingTimeout = setTimeout(next,500);
+    };
+    speechSynthesis.speak(currentUtterance);
+  }
+  next();
+}
+
+window.speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+build();
+</script>
+</body>
+</html>
